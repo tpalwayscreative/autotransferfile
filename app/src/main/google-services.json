@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "490874581969",
+    "firebase_url": "https://delfisharefile.firebaseio.com",
+    "project_id": "delfisharefile",
+    "storage_bucket": "delfisharefile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490874581969:android:549917ad6134a627",
+        "android_client_info": {
+          "package_name": "delfi.com.vn.autotransferfile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "490874581969-fdoecken76pt8os4ogk7ql39ll6k9qu1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBi7h05ql1HfpDKqwg82zJTZ6Gqi2Wa1Wo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
