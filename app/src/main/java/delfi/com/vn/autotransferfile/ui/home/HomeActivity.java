@@ -24,6 +24,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
+import delfi.com.vn.autotransferfile.service.AutoService;
 import delfi.com.vn.autotransferfile.ui.upload.UploadActivity;
 import delfi.com.vn.autotransferfile.common.PermissionUtils;
 public class HomeActivity extends AppCompatActivity {
@@ -88,6 +89,8 @@ public class HomeActivity extends AppCompatActivity {
 
         PermissionUtils.checkAndRequestPermissions(this);
         initFireBase();
+        Intent intent = new Intent(this, AutoService.class );
+        startService(intent);
     }
  
     /**

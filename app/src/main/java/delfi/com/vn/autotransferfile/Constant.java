@@ -6,4 +6,22 @@ public class Constant {
 	
 	// Directory name to store captured images and videos
     public static final String IMAGE_DIRECTORY_NAME = "Android File Upload";
+
+
+	/*
+	*
+
+ {
+   "to" : "/topics/news",
+
+    "data" : {
+      "Nick" : "Mario",
+      "Room" : "PortugalVSDenmark"
+    }
+  }
+	*
+	*
+	*
+	*
+	* */
 }
