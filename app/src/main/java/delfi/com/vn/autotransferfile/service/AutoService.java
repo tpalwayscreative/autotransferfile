@@ -14,7 +14,7 @@ public class AutoService extends Service {
     public AutoService() {
 
     }
-    
+
 
     @Override
     public IBinder onBind(Intent intent) {
