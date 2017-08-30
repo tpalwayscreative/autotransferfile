@@ -2,18 +2,27 @@ package delfi.com.vn.autotransferfile.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.hardware.Camera;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
+
+import com.google.gson.Gson;
 import com.snatik.storage.Storage;
 
 import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.ServerResponse;
+import net.gotev.uploadservice.UploadInfo;
 import net.gotev.uploadservice.UploadNotificationConfig;
+import net.gotev.uploadservice.UploadStatusDelegate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
@@ -21,13 +30,17 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service {
+public class AutoService extends Service  implements SingleUploadBroadcastReceiver.Delegate{
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
     private Observer pictureObserver ;
     private Observer downloadsObserver;
     private Storage storage ;
+    private final SingleUploadBroadcastReceiver uploadReceiver =
+            new SingleUploadBroadcastReceiver();
+
+
     public AutoService() {
 
     }
@@ -78,10 +91,10 @@ public class AutoService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        IntentFilter intentFilter = new IntentFilter();
+        registerReceiver(uploadReceiver,intentFilter);
         storage = new Storage(getApplicationContext());
 
-//        cameraObserver = new Observer(storage.getExternalStorageDirectory(Environment.DIRECTORY_DCIM+"/Camera"));
-//        cameraObserver.startWatching();
         Observable.create(subscriber -> {
             List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
             for (CAuToUpload index : list){
@@ -115,11 +128,10 @@ public class AutoService extends Service {
     }
 
     private class Observer extends FileObserver {
-        private String path;
 
+        private String path;
         public Observer(String path) {
-            //super(path, FileObserver.CLOSE_WRITE);
-            super(path, FileObserver.CLOSE_NOWRITE);
+            super(path, FileObserver.CREATE);
             this.path = path;
             Log.d(TAG,"Full path : "+ path);
         }
@@ -127,11 +139,15 @@ public class AutoService extends Service {
         @Override
         public void onEvent(int event, String file) {
             Log.d(TAG,"Event is :"+getEventString(event));
-            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE) {
-                Log.d(TAG,"onEvent action");
-                if (!file.equals("temp_video")) {
-                    Log.d(TAG, "event: " + getEventString((Integer) event) + " file: [" + file + "]");
+            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
+                List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
+                for (CAuToUpload index : list){
+                    String nameFile = index.full_path+"/"+file;
+                    if (index.isEnable && storage.isFileExist(nameFile)){
+                        uploadMultipart(getApplicationContext(),nameFile);
+                    }
                 }
+                Log.d(TAG, "event: " + getEventString((Integer) event) + " file: [" + file + "]");
             }
         }
     }
@@ -139,6 +155,9 @@ public class AutoService extends Service {
     public void uploadMultipart(final Context context,String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
+            String uploadId = UUID.randomUUID().toString();
+            uploadReceiver.setDelegate(this);
+            uploadReceiver.setUploadID(uploadId);
             Log.d(TAG,"file upload : "+ filePath);
             Map<String,String> hash = new HashMap<>();
             hash.put("email","delfitest@gmail.com");
@@ -158,4 +177,24 @@ public class AutoService extends Service {
     }
 
 
+    @Override
+    public void onProgress(int progress) {
+
+    }
+
+    @Override
+    public void onError(Exception exception) {
+        Log.d(TAG,"Show Failed");
+    }
+
+    @Override
+    public void onCompleted(UploadInfo uploadInfo, ServerResponse serverResponse) {
+
+        Log.d(TAG,"Show comepleted");
+    }
+
+    @Override
+    public void onCancelled() {
+
+    }
 }
