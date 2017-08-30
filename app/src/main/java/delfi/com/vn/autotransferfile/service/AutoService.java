@@ -62,7 +62,7 @@ public class AutoService extends Service {
                 return "MOVED_FROM";
             case android.os.FileObserver.MOVED_TO:
                 return "MOVED_TO";
-            case android.os.FileObserver.CREATE:
+            case FileObserver.CREATE:
                 return "CREATE";
             case android.os.FileObserver.DELETE:
                 return "DELETE";
@@ -79,6 +79,7 @@ public class AutoService extends Service {
     public void onCreate() {
         super.onCreate();
         storage = new Storage(getApplicationContext());
+
 //        cameraObserver = new Observer(storage.getExternalStorageDirectory(Environment.DIRECTORY_DCIM+"/Camera"));
 //        cameraObserver.startWatching();
         Observable.create(subscriber -> {
@@ -98,7 +99,6 @@ public class AutoService extends Service {
                         downloadsObserver = new Observer(index.full_path);
                         downloadsObserver.startWatching();
                     }
-
                 }
             }
             if (storage.isDirectoryExists(storage.getExternalStorageDirectory(Environment.DIRECTORY_DCIM+"/Camera/")))
@@ -119,17 +119,16 @@ public class AutoService extends Service {
 
         public Observer(String path) {
             //super(path, FileObserver.CLOSE_WRITE);
-            super(path, FileObserver.ALL_EVENTS);
+            super(path, FileObserver.CLOSE_NOWRITE);
             this.path = path;
             Log.d(TAG,"Full path : "+ path);
         }
 
         @Override
         public void onEvent(int event, String file) {
-            Log.d(TAG,"Event is :"+getEventString((Integer) event));
-            if (event == FileObserver.CREATE || event == FileObserver.MODIFY) {
+            Log.d(TAG,"Event is :"+getEventString(event));
+            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE) {
                 Log.d(TAG,"onEvent action");
-
                 if (!file.equals("temp_video")) {
                     Log.d(TAG, "event: " + getEventString((Integer) event) + " file: [" + file + "]");
                 }
