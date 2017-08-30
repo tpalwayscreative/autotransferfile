@@ -47,7 +47,7 @@
     <string name="noThanks">No thanks</string>
     <string name="googleWifi">Google Wifi</string>
     <string name="connect">Connect</string>
-
+    <string name="tvSave">Save</string>
     <string name="about">About</string>
     <string name="about_body"><![CDATA[
         material-dialogs, a library  designed by <b>Aidan Follestad</b>.<br/>

@@ -50,21 +50,31 @@ dependencies {
 
     compile files('libs/httpclient-4.3.6.jar', 'libs/httpcore-4.3.3.jar', 'libs/httpmime-4.3.6.jar')
     testCompile 'junit:junit:4.12'
-    compile 'com.snatik:storage:2.1.0'
-
     def uploadServiceVersion = "3.4"
     compile "net.gotev:uploadservice:$uploadServiceVersion"
     compile "net.gotev:uploadservice-okhttp:$uploadServiceVersion"
-
-    compile 'com.android.support:appcompat-v7:26.+'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.6'
+    final SUPPORT_LIBRARY_VERSION = "26.+"
+    compile "com.android.support:recyclerview-v7:$SUPPORT_LIBRARY_VERSION"
+    compile "com.android.support:cardview-v7:$SUPPORT_LIBRARY_VERSION"
+    compile "com.android.support:design:$SUPPORT_LIBRARY_VERSION"
+    compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
+    compile "com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION"
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.snatik:storage:2.1.0'
     compile 'com.google.firebase:firebase-messaging:11.2.0'
     compile 'com.firebase:firebase-jobdispatcher:0.6.0'
     testCompile 'junit:junit:4.12'
+    compile 'com.google.code.gson:gson:2.8.1'
+    compile('com.jakewharton:butterknife:8.7.0') {
+        exclude module: 'appcompat-v7'
+        exclude group: 'com.android.support'
+    }
     apt 'com.jakewharton:butterknife-compiler:8.7.0'
-    compile 'com.afollestad.material-dialogs:core:0.9.4.5'
-    compile 'com.afollestad.material-dialogs:commons:0.9.4.5'
+
+
+
 
 }
 
