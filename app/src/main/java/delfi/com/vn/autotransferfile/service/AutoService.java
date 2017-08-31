@@ -39,8 +39,7 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     private Storage storage ;
     private final SingleUploadBroadcastReceiver uploadReceiver =
             new SingleUploadBroadcastReceiver();
-
-
+    
     public AutoService() {
 
     }
