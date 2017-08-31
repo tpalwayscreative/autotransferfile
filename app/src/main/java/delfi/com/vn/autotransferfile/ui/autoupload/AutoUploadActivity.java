@@ -28,11 +28,13 @@ import delfi.com.vn.autotransferfile.common.dialog.MaterialMultiSelectListPrefer
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.service.AutoService;
-import dk.delfi.core.ui.recycleview.DPRecyclerView;
 
-public class AutoUploadActivity extends AutoUploadRemote{
+public class AutoUploadActivity extends AppCompatActivity implements AutoUploadView,AutoUploadAdapter.AutoUploadListener{
 
     public static final String TAG = AutoUploadActivity.class.getSimpleName();
+    private AutoUploadPresenter presenter;
+    private AutoUploadAdapter adapter ;
+    private LinearLayoutManager llm ;
     @BindView(R.id.rcAuto)
     RecyclerView recyclerView ;
     private Unbinder unbinder ;
@@ -41,8 +43,8 @@ public class AutoUploadActivity extends AutoUploadRemote{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auto_upload);
-        adapter = DPRecyclerView.instance(this,recyclerView,R.layout.autoupdate_items,this, LinearLayoutManager.VERTICAL).adapterRecycleView();
-        recyclerView.setAdapter(adapter);
+        unbinder = ButterKnife.bind(this);
+        setupRecyclerView();
         presenter = new AutoUploadPresenter(this);
         presenter.bindView(this);
         presenter.onShowList();
@@ -50,14 +52,32 @@ public class AutoUploadActivity extends AutoUploadRemote{
         intent = new Intent(this, AutoService.class );
         startService(intent);
 
+
+//        if (getFragmentManager().findFragmentById(android.R.id.content) == null) {
+//            getFragmentManager()
+//                    .beginTransaction()
+//                    .replace(android.R.id.content, new SettingsFragment())
+//                    .commit();
+//        }
+
+    }
+    public void setupRecyclerView() {
+        llm = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(llm);
+        adapter = new AutoUploadAdapter(getLayoutInflater(),this,this);
+        recyclerView.setAdapter(adapter);
     }
 
+    @Override
+    public void onItemClicked(int position) {
 
-//    @Override
-//    public void onChecked(int position, boolean isEnable) {
-//        Log.d(TAG,"Show :"+ isEnable);
-//        presenter.getList().get(position).isEnable = isEnable;
-//    }
+    }
+
+    @Override
+    public void onChecked(int position, boolean isEnable) {
+        Log.d(TAG,"Show :"+ isEnable);
+        presenter.getList().get(position).isEnable = isEnable;
+    }
 
     public static class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener,MaterialMultiSelectListPreference.BeepSettingPreferencesListener {
         MaterialMultiSelectListPreference preference ;
@@ -91,11 +111,11 @@ public class AutoUploadActivity extends AutoUploadRemote{
             case R.id.action_SettingScanner :
                 if (FileUtil.mDeleteFile(this,Constant.LIST_FILE)){
                     if (FileUtil.mCreateAndSaveFile(this, Constant.LIST_FILE,new Gson().toJson(presenter.getList()))){
-                        Toast.makeText(this,"Synchronized successfully",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"Saved successfully",Toast.LENGTH_SHORT).show();
                         stopService(intent);
                         startService(intent);
                     }else{
-                        Toast.makeText(this,"Synchronized failed",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"Saved failed",Toast.LENGTH_SHORT).show();
                     }
                 }
                return true ;
@@ -117,9 +137,28 @@ public class AutoUploadActivity extends AutoUploadRemote{
     }
 
     @Override
+    public void onShowList(List<CAuToUpload> list) {
+        adapter.setDataSource(list);
+    }
+
+    @Override
+    public void showLoading() {
+
+    }
+
+    @Override
+    public void hideLoading() {
+
+    }
+
+    @Override
     public Context getContext() {
         return getApplicationContext();
     }
 
+/**
+     * A preference value change listener that updates the preference's summary
+     * to reflect its new value.
+     */
 
 }

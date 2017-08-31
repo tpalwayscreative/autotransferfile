@@ -4,9 +4,10 @@ import com.snatik.storage.Storage;
 import java.util.ArrayList;
 import java.util.List;
 import delfi.com.vn.autotransferfile.Constant;
+import delfi.com.vn.autotransferfile.common.presenter.Presenter;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
-import dk.delfi.core.common.presenter.Presenter;
+
 
 /**
  * Created by PC on 8/30/2017.

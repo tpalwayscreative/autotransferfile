@@ -25,7 +25,7 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener , RecursiveFileObserver.EventListener {
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener {
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
@@ -99,8 +99,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     if (index.name.equals("Camera")){
                         cameraObserver = new Observer(index.full_path);
                         cameraObserver.startWatching();
-                        recursiveFileObserver = new RecursiveFileObserver(index.full_path,this);
-                        recursiveFileObserver.startWatching();
                     }
                     else if(index.name.equals("Picture")){
                         pictureObserver = new Observer(index.full_path);
@@ -156,12 +154,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
     }
 
-    @Override
-    public void onEvent(int event, File file) {
-        if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
-            Log.d(TAG,"New Event : " +getEventString(event) + "Code : "+event);
-        }
-    }
 
     public void uploadMultipart(final Context context, String filePath) {
         try {
