@@ -20,16 +20,18 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
+import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener{
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener , RecursiveFileObserver.EventListener {
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
     private Observer pictureObserver ;
     private Observer downloadsObserver;
+    private RecursiveFileObserver recursiveFileObserver;
     private Storage storage ;
     private List<CAutoFileOffice> listOffice;
     public AutoService() {
@@ -97,6 +99,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     if (index.name.equals("Camera")){
                         cameraObserver = new Observer(index.full_path);
                         cameraObserver.startWatching();
+                        recursiveFileObserver = new RecursiveFileObserver(index.full_path,this);
+                        recursiveFileObserver.startWatching();
                     }
                     else if(index.name.equals("Picture")){
                         pictureObserver = new Observer(index.full_path);
@@ -123,11 +127,13 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
     private class Observer extends FileObserver {
         private String path;
+
         public Observer(String path) {
             super(path, FileObserver.CREATE);
             this.path = path;
             Log.d(TAG,"Full path : "+ path);
         }
+
         @Override
         public void onEvent(int event, String file) {
             if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
@@ -150,7 +156,14 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
     }
 
-    public void uploadMultipart(final Context context,String filePath) {
+    @Override
+    public void onEvent(int event, File file) {
+        if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
+            Log.d(TAG,"New Event : " +getEventString(event) + "Code : "+event);
+        }
+    }
+
+    public void uploadMultipart(final Context context, String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
             Log.d(TAG,"file upload : "+ filePath);
