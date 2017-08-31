@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package delfi.com.vn.autotransferfile.service;
+package delfi.com.vn.autotransferfile.service.firebase;
 
 import android.util.Log;
 

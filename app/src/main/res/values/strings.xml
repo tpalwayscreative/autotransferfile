@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">autotransferfile</string>
+    <string name="app_name">Delfi Auto Transfer</string>
     <string name="btnTakePicture">Capture Image</string>
     <string name="btnRecordVideo">Record Video</string>
     <string name="or">(or)</string>
@@ -219,7 +219,7 @@
     <string name="list_longPress">Basic List (Long Press)</string>
     <string name="add_item">Add Item</string>
     <string name="multiChoiceLimitedMin">Multi Choice (Min Selections)</string>
-
     <string name="key_gallery_name">key_gallery_name</string>
+    <string name="tvInfo">Please choose which folders you want to synchronize</string>
 
 </resources>

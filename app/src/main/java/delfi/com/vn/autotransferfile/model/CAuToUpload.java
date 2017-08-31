@@ -15,4 +15,5 @@ public class CAuToUpload {
         this.full_path = full_path;
         this.isEnable = isEnable;
     }
+
 }

@@ -1,4 +1,4 @@
-package delfi.com.vn.autotransferfile.service;
+package delfi.com.vn.autotransferfile.service.uploadservice;
 
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +41,7 @@ public class SingleUploadBroadcastReceiver extends UploadServiceBroadcastReceive
 
     @Override
     public void onProgress(Context context, UploadInfo uploadInfo) {
+        super.onProgress(context,uploadInfo);
         if (uploadInfo.getUploadId().equals(mUploadID) && mDelegate != null) {
             mDelegate.onProgress(uploadInfo.getProgressPercent());
         }
@@ -48,6 +49,7 @@ public class SingleUploadBroadcastReceiver extends UploadServiceBroadcastReceive
 
     @Override
     public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
+        super.onCompleted(context,uploadInfo,serverResponse);
         if (uploadInfo.getUploadId().equals(mUploadID) && mDelegate != null) {
             mDelegate.onCompleted(uploadInfo, serverResponse);
         }
@@ -55,6 +57,7 @@ public class SingleUploadBroadcastReceiver extends UploadServiceBroadcastReceive
 
     @Override
     public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
+        super.onError(context,uploadInfo,serverResponse,exception);
         if (uploadInfo.getUploadId().equals(mUploadID) && mDelegate != null) {
             mDelegate.onError(exception);
         }
@@ -63,6 +66,7 @@ public class SingleUploadBroadcastReceiver extends UploadServiceBroadcastReceive
 
     @Override
     public void onCancelled(Context context, UploadInfo uploadInfo) {
+        super.onCancelled(context,uploadInfo);
         if (uploadInfo.getUploadId().equals(mUploadID) && mDelegate != null) {
             mDelegate.onCancelled();
         }

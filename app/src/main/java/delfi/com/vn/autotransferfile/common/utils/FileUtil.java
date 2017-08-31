@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -110,6 +111,7 @@ public class FileUtil {
                 if (!root.exists()){
                     root.createNewFile();
                 }
+
                 FileWriter file = new FileWriter(root,false);
                 file.write(responseJson);
                 file.flush();
@@ -138,6 +140,26 @@ public class FileUtil {
                 e.printStackTrace();
             }
             return null;
+
+    }
+
+    public static List<CAutoFileOffice> mReadJsonDataFileOffice(Context context, String fileName) {
+        try {
+            File f = new File("/data/data/" + context.getPackageName() + "/" + fileName);
+            FileInputStream is = new FileInputStream(f);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            String mResponse = new String(buffer);
+            Gson gson = new Gson();
+            TypeToken<List<CAutoFileOffice>> token = new TypeToken<List<CAutoFileOffice>>() {};
+            List<CAutoFileOffice> list = gson.fromJson(mResponse,token.getType());
+            return list;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
 
     }
 

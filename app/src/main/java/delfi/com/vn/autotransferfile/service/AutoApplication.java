@@ -19,6 +19,7 @@ import delfi.com.vn.autotransferfile.common.PermissionUtils;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.SharePreferencesFile;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
 
 /**
  * Created by PC on 8/29/2017.
@@ -27,17 +28,27 @@ import delfi.com.vn.autotransferfile.model.CAuToUpload;
 public class AutoApplication extends Application {
     public static final String TAG = AutoApplication.class.getSimpleName();
     private Storage storage ;
+    private static AutoApplication mInstance;
     @Override
     public void onCreate() {
         super.onCreate();
+        mInstance = this;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         UploadService.HTTP_STACK = new OkHttpStack();
         FirebaseMessaging.getInstance().subscribeToTopic("news");
         if (!FileUtil.mCheckFileExisting(getApplicationContext(),Constant.LIST_FILE)){
             initData();
+            FileUtil.mCreateAndSaveFile(this,Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
         }
     }
 
+    public static synchronized AutoApplication getInstance() {
+        return mInstance;
+    }
+
+    public void setConnectivityListener(ConnectivityReceiver.ConnectivityReceiverListener listener) {
+        ConnectivityReceiver.connectivityReceiverListener = listener;
+    }
 
     public void initData(){
         storage = new Storage(getApplicationContext());

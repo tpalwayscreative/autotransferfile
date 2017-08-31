@@ -111,11 +111,11 @@ public class AutoUploadActivity extends AppCompatActivity implements AutoUploadV
             case R.id.action_SettingScanner :
                 if (FileUtil.mDeleteFile(this,Constant.LIST_FILE)){
                     if (FileUtil.mCreateAndSaveFile(this, Constant.LIST_FILE,new Gson().toJson(presenter.getList()))){
-                        Toast.makeText(this,"Saved successfully",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"Synchronized successfully",Toast.LENGTH_SHORT).show();
                         stopService(intent);
                         startService(intent);
                     }else{
-                        Toast.makeText(this,"Saved failed",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"Synchronized failed",Toast.LENGTH_SHORT).show();
                     }
                 }
                return true ;

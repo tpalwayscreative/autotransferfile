@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package delfi.com.vn.autotransferfile.service;
+package delfi.com.vn.autotransferfile.service.firebase;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -26,7 +26,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.GooglePlayDriver;

@@ -1,45 +1,39 @@
 package delfi.com.vn.autotransferfile.service;
+import android.app.DownloadManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.Camera;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
-
 import com.google.gson.Gson;
 import com.snatik.storage.Storage;
-
 import net.gotev.uploadservice.MultipartUploadRequest;
-import net.gotev.uploadservice.ServerResponse;
-import net.gotev.uploadservice.UploadInfo;
 import net.gotev.uploadservice.UploadNotificationConfig;
-import net.gotev.uploadservice.UploadStatusDelegate;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
+import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
+import delfi.com.vn.autotransferfile.service.uploadservice.DownLoadBroadCastReceiver;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service  implements SingleUploadBroadcastReceiver.Delegate{
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener{
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
     private Observer pictureObserver ;
     private Observer downloadsObserver;
     private Storage storage ;
-    private final SingleUploadBroadcastReceiver uploadReceiver =
-            new SingleUploadBroadcastReceiver();
-    
+    private List<CAutoFileOffice> listOffice;
     public AutoService() {
 
     }
@@ -54,6 +48,11 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Let it continue running until it is stopped.
         return START_STICKY ;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     private static String getEventString(int event) {
@@ -90,10 +89,9 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     @Override
     public void onCreate() {
         super.onCreate();
-        IntentFilter intentFilter = new IntentFilter();
-        registerReceiver(uploadReceiver,intentFilter);
+        AutoApplication.getInstance().setConnectivityListener(this);
         storage = new Storage(getApplicationContext());
-
+        listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
             List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
             for (CAuToUpload index : list){
@@ -103,7 +101,6 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
                         cameraObserver.startWatching();
                     }
                     else if(index.name.equals("Picture")){
-
                         pictureObserver = new Observer(index.full_path);
                         pictureObserver.startWatching();
                     }
@@ -127,14 +124,12 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     }
 
     private class Observer extends FileObserver {
-
         private String path;
         public Observer(String path) {
             super(path, FileObserver.CREATE);
             this.path = path;
             Log.d(TAG,"Full path : "+ path);
         }
-
         @Override
         public void onEvent(int event, String file) {
             Log.d(TAG,"Event is :"+getEventString(event));
@@ -143,9 +138,15 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
                 for (CAuToUpload index : list){
                     String nameFile = index.full_path+"/"+file;
                     if (index.isEnable && storage.isFileExist(nameFile)){
-                        uploadMultipart(getApplicationContext(),nameFile);
+                        if (ConnectivityReceiver.isConnected()){
+                            uploadMultipart(getApplicationContext(),nameFile);
+                        }
+                        else{
+                            listOffice.add(new CAutoFileOffice(nameFile));
+                        }
                     }
                 }
+                FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
                 Log.d(TAG, "event: " + getEventString((Integer) event) + " file: [" + file + "]");
             }
         }
@@ -154,9 +155,6 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     public void uploadMultipart(final Context context,String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
-            String uploadId = UUID.randomUUID().toString();
-            uploadReceiver.setDelegate(this);
-            uploadReceiver.setUploadID(uploadId);
             Log.d(TAG,"file upload : "+ filePath);
             Map<String,String> hash = new HashMap<>();
             hash.put("email","delfitest@gmail.com");
@@ -175,25 +173,34 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
         }
     }
 
-
     @Override
-    public void onProgress(int progress) {
-
-    }
-
-    @Override
-    public void onError(Exception exception) {
-        Log.d(TAG,"Show Failed");
-    }
-
-    @Override
-    public void onCompleted(UploadInfo uploadInfo, ServerResponse serverResponse) {
-
-        Log.d(TAG,"Show comepleted");
-    }
-
-    @Override
-    public void onCancelled() {
-
+    public void onNetworkConnectionChanged(boolean isConnected) {
+        Observable.create(subscriber -> {
+            boolean isActive = false;
+            try {
+                List<CAutoFileOffice> list = FileUtil.mReadJsonDataFileOffice(this,Constant.LIST_FILE_OFFICE);
+                for (CAutoFileOffice index:list){
+                    if (isConnected){
+                        uploadMultipart(this,index.pathFile);
+                        isActive = true;
+                    }
+                }
+                Log.d(TAG,"Internet changed");
+            }
+            catch (NullPointerException e){
+                e.printStackTrace();
+            }
+            subscriber.onNext(isActive);
+            subscriber.onCompleted();
+        }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.computation())
+                .subscribe(response -> {
+                    boolean isResponse = (boolean)response;
+                    if (isResponse){
+                        FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
+                        FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
+                        listOffice = new ArrayList<CAutoFileOffice>();
+                    }
+                });
     }
 }

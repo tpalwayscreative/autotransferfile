@@ -20,6 +20,7 @@ android {
         }
     }
 
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/NOTICE'
@@ -41,6 +42,7 @@ android {
     }
 
 }
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])

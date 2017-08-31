@@ -37,7 +37,7 @@ import net.gotev.uploadservice.UploadNotificationConfig;
 
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
-import delfi.com.vn.autotransferfile.service.AndroidMultiPartEntity;
+import delfi.com.vn.autotransferfile.service.uploadservice.AndroidMultiPartEntity;
 import delfi.com.vn.autotransferfile.ui.home.HomeActivity;
 
 public class UploadActivity extends AppCompatActivity {

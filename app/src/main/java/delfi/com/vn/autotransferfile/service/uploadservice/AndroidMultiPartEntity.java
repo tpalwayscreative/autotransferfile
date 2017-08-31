@@ -1,4 +1,4 @@
-package delfi.com.vn.autotransferfile.service;
+package delfi.com.vn.autotransferfile.service.uploadservice;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
