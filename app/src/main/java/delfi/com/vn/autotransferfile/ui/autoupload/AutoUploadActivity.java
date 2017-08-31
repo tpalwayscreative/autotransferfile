@@ -28,13 +28,11 @@ import delfi.com.vn.autotransferfile.common.dialog.MaterialMultiSelectListPrefer
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.service.AutoService;
+import dk.delfi.core.ui.recycleview.DPRecyclerView;
 
-public class AutoUploadActivity extends AppCompatActivity implements AutoUploadView,AutoUploadAdapter.AutoUploadListener{
+public class AutoUploadActivity extends AutoUploadRemote{
 
     public static final String TAG = AutoUploadActivity.class.getSimpleName();
-    private AutoUploadPresenter presenter;
-    private AutoUploadAdapter adapter ;
-    private LinearLayoutManager llm ;
     @BindView(R.id.rcAuto)
     RecyclerView recyclerView ;
     private Unbinder unbinder ;
@@ -43,8 +41,8 @@ public class AutoUploadActivity extends AppCompatActivity implements AutoUploadV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auto_upload);
-        unbinder = ButterKnife.bind(this);
-        setupRecyclerView();
+        adapter = DPRecyclerView.instance(this,recyclerView,R.layout.autoupdate_items,this, LinearLayoutManager.VERTICAL).adapterRecycleView();
+        recyclerView.setAdapter(adapter);
         presenter = new AutoUploadPresenter(this);
         presenter.bindView(this);
         presenter.onShowList();
@@ -52,32 +50,14 @@ public class AutoUploadActivity extends AppCompatActivity implements AutoUploadV
         intent = new Intent(this, AutoService.class );
         startService(intent);
 
-
-//        if (getFragmentManager().findFragmentById(android.R.id.content) == null) {
-//            getFragmentManager()
-//                    .beginTransaction()
-//                    .replace(android.R.id.content, new SettingsFragment())
-//                    .commit();
-//        }
-
-    }
-    public void setupRecyclerView() {
-        llm = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        recyclerView.setLayoutManager(llm);
-        adapter = new AutoUploadAdapter(getLayoutInflater(),this,this);
-        recyclerView.setAdapter(adapter);
     }
 
-    @Override
-    public void onItemClicked(int position) {
 
-    }
-
-    @Override
-    public void onChecked(int position, boolean isEnable) {
-        Log.d(TAG,"Show :"+ isEnable);
-        presenter.getList().get(position).isEnable = isEnable;
-    }
+//    @Override
+//    public void onChecked(int position, boolean isEnable) {
+//        Log.d(TAG,"Show :"+ isEnable);
+//        presenter.getList().get(position).isEnable = isEnable;
+//    }
 
     public static class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener,MaterialMultiSelectListPreference.BeepSettingPreferencesListener {
         MaterialMultiSelectListPreference preference ;
@@ -137,28 +117,9 @@ public class AutoUploadActivity extends AppCompatActivity implements AutoUploadV
     }
 
     @Override
-    public void onShowList(List<CAuToUpload> list) {
-        adapter.setDataSource(list);
-    }
-
-    @Override
-    public void showLoading() {
-
-    }
-
-    @Override
-    public void hideLoading() {
-
-    }
-
-    @Override
     public Context getContext() {
         return getApplicationContext();
     }
 
-/**
-     * A preference value change listener that updates the preference's summary
-     * to reflect its new value.
-     */
 
 }

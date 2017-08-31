@@ -3,7 +3,7 @@ import android.app.Application;
 import android.os.Environment;
 import android.util.Log;
 
-import com.google.firebase.messaging.FirebaseMessaging;
+//import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 import com.snatik.storage.Storage;
 
@@ -35,7 +35,7 @@ public class AutoApplication extends Application {
         mInstance = this;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         UploadService.HTTP_STACK = new OkHttpStack();
-        FirebaseMessaging.getInstance().subscribeToTopic("news");
+        //FirebaseMessaging.getInstance().subscribeToTopic("news");
         if (!FileUtil.mCheckFileExisting(getApplicationContext(),Constant.LIST_FILE)){
             initData();
             FileUtil.mCreateAndSaveFile(this,Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));

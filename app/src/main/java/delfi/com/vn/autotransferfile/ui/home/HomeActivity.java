@@ -19,8 +19,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessaging;
+//import com.google.firebase.iid.FirebaseInstanceId;
+//import com.google.firebase.messaging.FirebaseMessaging;
 
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
@@ -88,7 +88,7 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         PermissionUtils.checkAndRequestPermissions(this);
-        initFireBase();
+        //initFireBase();
         Intent intent = new Intent(this, AutoService.class );
         startService(intent);
     }
@@ -131,7 +131,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // [START subscribe_topics]
-                FirebaseMessaging.getInstance().subscribeToTopic("news");
+                //FirebaseMessaging.getInstance().subscribeToTopic("news");
                 // [END subscribe_topics]
 
                 // Log and toast
@@ -146,12 +146,11 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Get token
-                String token = FirebaseInstanceId.getInstance().getToken();
-
+                //String token = FirebaseInstanceId.getInstance().getToken();
                 // Log and toast
-                String msg = getString(R.string.msg_token_fmt, token);
-                Log.d(TAG, msg);
-                Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_SHORT).show();
+                //String msg = getString(R.string.msg_token_fmt, token);
+                // Log.d(TAG, msg);
+                //Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
     }

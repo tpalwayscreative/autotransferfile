@@ -1,26 +1,18 @@
 package delfi.com.vn.autotransferfile.ui.autoupload;
-
 import android.app.Activity;
-import android.os.Environment;
-import android.util.Log;
-
-import com.google.gson.Gson;
 import com.snatik.storage.Storage;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import delfi.com.vn.autotransferfile.Constant;
-import delfi.com.vn.autotransferfile.common.presenter.Presenter;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import dk.delfi.core.common.presenter.Presenter;
 
 /**
  * Created by PC on 8/30/2017.
  */
 
-public class AutoUploadPresenter extends Presenter<AutoUploadView>  {
+public class AutoUploadPresenter extends Presenter<AutoUploadView> {
 
 
     private List<CAuToUpload>list ;
