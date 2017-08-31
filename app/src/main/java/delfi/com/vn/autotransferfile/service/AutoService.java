@@ -1,9 +1,7 @@
 package delfi.com.vn.autotransferfile.service;
-import android.app.DownloadManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
