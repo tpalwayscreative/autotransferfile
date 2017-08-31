@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -33,7 +34,7 @@ import rx.schedulers.Schedulers;
  * Created by hdadmin on 2/7/2017.
  */
 
-public class FileUtil {
+public class FileUtil implements FileFilter {
 
     /**
      * Get a usable cache directory (external if available, internal otherwise).
@@ -44,6 +45,7 @@ public class FileUtil {
      */
 
     public  static  final String TAG = FileUtil.class.getSimpleName();
+    private static final String[] okFileExtensions =  new String[] {"jpg", "png", "gif","jpeg"};
     public static final String USER_BEEPS_PATH = (Environment.getExternalStorageDirectory().getAbsolutePath() + "/ScannerBeep");
     private static FileUtil instance ;
     private Context context ;
@@ -184,5 +186,21 @@ public class FileUtil {
         return false;
     }
 
+    @Override
+    public boolean accept(File file) {
+        return false;
+    }
+
+
+    public static boolean fileAccept(File file){
+        for (String extension : okFileExtensions)
+        {
+            if (file.getName().toLowerCase().endsWith(extension))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

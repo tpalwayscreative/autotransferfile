@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.snatik.storage.Storage;
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.UploadNotificationConfig;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,6 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
-import delfi.com.vn.autotransferfile.service.uploadservice.DownLoadBroadCastReceiver;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -132,13 +132,13 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
         @Override
         public void onEvent(int event, String file) {
-            Log.d(TAG,"Event is :"+getEventString(event));
             if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
                 List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
                 for (CAuToUpload index : list){
                     String nameFile = index.full_path+"/"+file;
-                    if (index.isEnable && storage.isFileExist(nameFile)){
+                    if (index.isEnable && storage.isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
                         if (ConnectivityReceiver.isConnected()){
+                            Log.d(TAG,"Event is :"+nameFile);
                             uploadMultipart(getApplicationContext(),nameFile);
                         }
                         else{
@@ -167,7 +167,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setMaxRetries(2)
                     .startUpload();
-
         } catch (Exception exc) {
             Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
