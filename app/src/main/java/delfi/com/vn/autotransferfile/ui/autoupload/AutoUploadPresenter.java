@@ -13,7 +13,7 @@ import delfi.com.vn.autotransferfile.model.CAuToUpload;
  * Created by PC on 8/30/2017.
  */
 
-public class AutoUploadPresenter extends Presenter<AutoUploadView> {
+public class AutoUploadPresenter extends Presenter<AutoUploadRemote> {
 
 
     private List<CAuToUpload>list ;
