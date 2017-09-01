@@ -13,10 +13,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp">
         <EditText
+            android:layout_marginTop="50dp"
             android:id="@+id/edtName"
             android:layout_marginRight="20dp"
             android:layout_marginLeft="20dp"
-            android:layout_centerInParent="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <Button

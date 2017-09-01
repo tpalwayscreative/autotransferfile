@@ -1,6 +1,9 @@
 package delfi.com.vn.autotransferfile.common.api;
 import java.util.HashMap;
+
+import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponse;
+import delfi.com.vn.autotransferfile.common.api.response.UserResponseOption;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.Field;
@@ -23,6 +26,7 @@ public interface ServerAPI {
     String TASKS_DELETE = "/task_manager/v1/tasks/{id}";
     String TASKS_DETAIL = "/task_manager/v1/tasks/{id}";
     String TASKS_LOAD_MORE = "/task_manager/v1/tasksLoadMore";
+    String USER_SIGNUP = "/api/user/Register";
 
     @FormUrlEncoded
     @POST(USER_REGISTER)
@@ -32,6 +36,8 @@ public interface ServerAPI {
     @POST(USER_LOGIN)
     Observable<UserResponse> userLogin(@FieldMap HashMap<String, Object> hashMap);
 
+    @POST(USER_SIGNUP)
+    Observable<UserResponseOption> signUp(@Body UserRequestOption userRequest);
 
     /*
     @FormUrlEncoded

@@ -21,7 +21,7 @@ android {
             minifyEnabled false
             applicationIdSuffix ".develop"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            buildConfigField "String", "BASE_URL_API", "\"http://tpalwayscreative.esy.es\""
+            buildConfigField "String", "BASE_URL_API", "\"http://192.168.2.135:8081\""
         }
         production {
             initWith(buildTypes.debug)
@@ -29,6 +29,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             buildConfigField "String", "BASE_URL_API", "\"http://tpalwayscreative.esy.es\""
         }
+
     }
 
     packagingOptions {

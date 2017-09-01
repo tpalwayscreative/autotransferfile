@@ -2,9 +2,7 @@ package delfi.com.vn.autotransferfile.ui.splashscreen;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-
 import java.util.List;
-
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.model.CUser;
@@ -12,6 +10,7 @@ import dk.delfi.core.common.activity.BaseActivity;
 import dk.delfi.core.common.controller.RealmController;
 
 public class SplashScreen extends BaseActivity implements RealmController.RealmControllerListener<CUser>{
+
     Handler handler ;
     private RealmController instance ;
     public static final String TAG = SplashScreen.class.getSimpleName();
@@ -30,7 +29,12 @@ public class SplashScreen extends BaseActivity implements RealmController.RealmC
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Navigator.moveToHome(getApplicationContext());
+                if (cUser!=null){
+                    Navigator.moveToHome(getApplicationContext());
+                }
+                else{
+                    Navigator.moveToUser(getApplicationContext());
+                }
                 finish();
             }
         },2000);

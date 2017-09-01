@@ -222,5 +222,6 @@
     <string name="key_gallery_name">key_gallery_name</string>
     <string name="tvInfo">Please choose which folders you want to synchronize</string>
     <string name="tvLogin">Login</string>
+    <string name="tvCheckNetwork">Please check Internet connection</string>
 
 </resources>

@@ -95,7 +95,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".ui.user.UserActivity"></activity>
+        <activity android:name=".ui.user.UserActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>
