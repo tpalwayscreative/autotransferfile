@@ -1,0 +1,54 @@
+[
+  {
+    "mActivityNameOfExecuteApp": "",
+    "mConvertSymbol": "KEYCODE_SCANNER_F",
+    "mDefaultSymbol": "KEYCODE_SCANNER_R",
+    "mDefineSymbol": "KEYCODE_SCANNER_R",
+    "mLabel": "DoScan",
+    "mPackageNameOfExecuteApp": "",
+    "mID": 2,
+    "mConvertKeyCode": 262,
+    "mDefaultKeyCode": 260,
+    "mDefineKeyCode": 260,
+    "mFlag": 2
+  },
+  {
+    "mActivityNameOfExecuteApp": "",
+    "mConvertSymbol": "KEYCODE_SCANNER_F",
+    "mDefaultSymbol": "KEYCODE_SCANNER_L",
+    "mDefineSymbol": "KEYCODE_SCANNER_L",
+    "mLabel": "DoScan",
+    "mPackageNameOfExecuteApp": "",
+    "mID": 3,
+    "mConvertKeyCode": 262,
+    "mDefaultKeyCode": 261,
+    "mDefineKeyCode": 261,
+    "mFlag": 2
+  },
+  {
+    "mActivityNameOfExecuteApp": "",
+    "mConvertSymbol": "KEYCODE_SCANNER_F",
+    "mDefaultSymbol": "KEYCODE_SCANNER_B",
+    "mDefineSymbol": "KEYCODE_UNKNOWN",
+    "mLabel": "DoScan",
+    "mPackageNameOfExecuteApp": "",
+    "mID": 4,
+    "mConvertKeyCode": 262,
+    "mDefaultKeyCode": 263,
+    "mDefineKeyCode": 0,
+    "mFlag": 2
+  },
+  {
+    "mActivityNameOfExecuteApp": "",
+    "mConvertSymbol": "KEYCODE_SCANNER_F",
+    "mDefaultSymbol": "KEYCODE_FUNCTION",
+    "mDefineSymbol": "KEYCODE_FUNCTION",
+    "mLabel": "DoScan",
+    "mPackageNameOfExecuteApp": "",
+    "mID": 5,
+    "mConvertKeyCode": 262,
+    "mDefaultKeyCode": 119,
+    "mDefineKeyCode": 119,
+    "mFlag": 2
+  }
+]

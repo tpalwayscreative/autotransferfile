@@ -1,8 +1,9 @@
 package delfi.com.vn.autotransferfile.service;
+import android.app.Activity;
 import android.app.Application;
+import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-
 //import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 import com.snatik.storage.Storage;
@@ -10,12 +11,11 @@ import com.snatik.storage.Storage;
 import net.gotev.uploadservice.BuildConfig;
 import net.gotev.uploadservice.UploadService;
 import net.gotev.uploadservice.okhttp.OkHttpStack;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.PermissionUtils;
+import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.SharePreferencesFile;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
@@ -25,7 +25,7 @@ import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityRecei
  * Created by PC on 8/29/2017.
  */
 
-public class AutoApplication extends Application {
+public class AutoApplication extends BaseApplication implements Application.ActivityLifecycleCallbacks {
     public static final String TAG = AutoApplication.class.getSimpleName();
     private Storage storage ;
     private static AutoApplication mInstance;
@@ -48,6 +48,41 @@ public class AutoApplication extends Application {
 
     public void setConnectivityListener(ConnectivityReceiver.ConnectivityReceiverListener listener) {
         ConnectivityReceiver.connectivityReceiverListener = listener;
+    }
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+
     }
 
     public void initData(){
