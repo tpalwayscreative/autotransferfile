@@ -10,7 +10,6 @@ import io.realm.RealmObject;
 
 public class CGroups extends RealmObject{
 
-
     public int group_id;
     public String group_name;
     public String created_date;
@@ -28,7 +27,5 @@ public class CGroups extends RealmObject{
         this.updated_date = updated_date;
         this.status = status;
     }
-
-
-
+    
 }
