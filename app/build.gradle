@@ -59,7 +59,6 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile files('libs/httpclient-4.3.6.jar', 'libs/httpcore-4.3.3.jar', 'libs/httpmime-4.3.6.jar')
     def uploadServiceVersion = "3.3"
     compile "net.gotev:uploadservice:$uploadServiceVersion"
     compile "net.gotev:uploadservice-okhttp:$uploadServiceVersion"
@@ -80,9 +79,6 @@ dependencies {
         exclude module: 'appcompat-v4'
         exclude group: 'com.android.support'
     }
-
-    compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'io.reactivex:rxjava:1.1.6'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.snatik:storage:2.1.0'
     compile 'com.google.code.gson:gson:2.8.1'
