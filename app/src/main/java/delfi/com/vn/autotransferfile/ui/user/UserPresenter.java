@@ -98,7 +98,6 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                 }));
     }
 
-
     @Override
     public void onShowRealmList(List<CUser> list) {
 
