@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="delfi.com.vn.autotransferfile.ui.user.UserActivity">
-
     <RelativeLayout
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -13,13 +12,21 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_width="0dp"
         android:layout_height="0dp">
-
-
-
-
-
+        <EditText
+            android:id="@+id/edtName"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <Button
+            android:layout_centerInParent="true"
+            android:layout_below="@+id/edtName"
+            android:id="@+id/btnLogin"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            android:text="@string/tvLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </RelativeLayout>
-
-
-
 </android.support.constraint.ConstraintLayout>

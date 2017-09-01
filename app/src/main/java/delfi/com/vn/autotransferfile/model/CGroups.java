@@ -27,5 +27,5 @@ public class CGroups extends RealmObject{
         this.updated_date = updated_date;
         this.status = status;
     }
-    
+
 }
