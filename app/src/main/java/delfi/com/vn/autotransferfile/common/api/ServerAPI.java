@@ -4,6 +4,8 @@ import java.util.HashMap;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponse;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponseOption;
+import okhttp3.ResponseBody;
+import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.Field;
@@ -14,6 +16,8 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.Streaming;
+import retrofit2.http.Url;
 import rx.Observable;
 
 public interface ServerAPI {
@@ -38,6 +42,10 @@ public interface ServerAPI {
 
     @POST(USER_SIGNUP)
     Observable<UserResponseOption> signUp(@Body UserRequestOption userRequest);
+
+    @Streaming
+    @GET
+    Observable<Response<ResponseBody>> downloadFileByUrlRx(@Url String fileUrl);
 
     /*
     @FormUrlEncoded

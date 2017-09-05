@@ -3,7 +3,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,8 +13,8 @@ import java.util.List;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.PermissionUtils;
-import delfi.com.vn.autotransferfile.common.dialog.MaterialMultiSelectListPreference;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
+import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.service.AutoService;
 import dk.delfi.core.ui.recycleview.DPRecyclerView;
@@ -28,7 +27,7 @@ public class AutoUploadActivity extends AutoUploadRemote {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auto_upload);
-        adapter = DPRecyclerView.instance(this, recyclerView, R.layout.autoupdate_items, this, LinearLayoutManager.VERTICAL).adapterRecycleView();
+        adapter = DPRecyclerView.instance(this, recyclerView, R.layout.autoupload_items, this, LinearLayoutManager.VERTICAL).adapterRecycleView();
         recyclerView.setAdapter(adapter);
         presenter = new AutoUploadPresenter(this);
         presenter.bindView(this);
@@ -41,6 +40,12 @@ public class AutoUploadActivity extends AutoUploadRemote {
     public void onCheckedChangedCheckBox(int i, boolean b) {
         super.onCheckedChangedCheckBox(i, b);
         presenter.getList().get(i).isEnable = b;
+    }
+
+    @Override
+    public void onShowPosition(int i) {
+        super.onShowPosition(i);
+        Navigator.moveToAutoDetail(this,presenter.getList().get(i));
     }
 
     @Override
@@ -71,7 +76,6 @@ public class AutoUploadActivity extends AutoUploadRemote {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
     }
 
     @Override
@@ -84,4 +88,9 @@ public class AutoUploadActivity extends AutoUploadRemote {
         return getApplicationContext();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        DPRecyclerView.onRefresh(this,recyclerView,R.layout.autoupload_items,this, LinearLayoutManager.VERTICAL);
+    }
 }

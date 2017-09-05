@@ -1,15 +1,16 @@
 package delfi.com.vn.autotransferfile.ui.user;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 import java.util.List;
 import butterknife.OnClick;
 import delfi.com.vn.autotransferfile.R;
-import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
 import delfi.com.vn.autotransferfile.common.dialog.DialogFactory;
+import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.model.CUser;
+import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import dk.delfi.core.common.activity.BaseActivity;
 
 public class UserActivity extends BaseActivity implements UserView{
@@ -29,8 +30,11 @@ public class UserActivity extends BaseActivity implements UserView{
 
     @OnClick(R.id.btnLogin)
     public void onLogin(){
-        UserRequestOption userRequestOption = new UserRequestOption("abc","123","dcf123@gmail.com");
-        presenter.userRegister(userRequestOption);
+        Navigator.moveToHome(this);
+        //UserRequestOption userRequestOption = new UserRequestOption("abc","123","dcf123@gmail.com");
+       // presenter.userRegister(userRequestOption);
+       // Intent intent = new Intent(this,DownloadService.class);
+       // startService(intent);
     }
 
     @Override

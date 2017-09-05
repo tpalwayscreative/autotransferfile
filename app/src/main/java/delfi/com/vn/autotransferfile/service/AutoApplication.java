@@ -1,6 +1,7 @@
 package delfi.com.vn.autotransferfile.service;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -20,6 +21,7 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.SharePreferencesFile;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
+import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 
 /**
  * Created by PC on 8/29/2017.
@@ -35,7 +37,7 @@ public class AutoApplication extends BaseApplication implements Application.Acti
         mInstance = this;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         UploadService.HTTP_STACK = new OkHttpStack();
-        //FirebaseMessaging.getInstance().subscribeToTopic("news");
+
         if (!FileUtil.mCheckFileExisting(getApplicationContext(),Constant.LIST_FILE)){
             initData();
             FileUtil.mCreateAndSaveFile(this,Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));

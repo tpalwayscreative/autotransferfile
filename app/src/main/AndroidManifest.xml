@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -27,13 +28,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.home.HomeActivity"></activity>
+        <activity android:name=".ui.home.HomeActivity" />
         <activity android:name=".ui.upload.UploadActivity" />
 
         <service
             android:name=".service.AutoService"
             android:enabled="true"
             android:exported="true" />
+        <service android:name=".service.downloadservice.DownloadService" />
 
         <!-- &lt;!&ndash; [START fcm_default_icon] &ndash;&gt; -->
         <!-- &lt;!&ndash; -->
@@ -80,7 +82,7 @@
         <!-- </intent-filter> -->
         <!-- </service> -->
 
-        <activity android:name=".ui.autoupload.AutoUploadActivity"></activity>
+        <activity android:name=".ui.autoupload.AutoUploadActivity" />
 
         <receiver
             android:name=".service.uploadservice.DownLoadBroadCastReceiver"
@@ -95,8 +97,11 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".ui.user.UserActivity"
-            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".ui.user.UserActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ui.setting.SettingsActivity" />
+        <activity android:name=".ui.autodetail.AutoDetailActivity"></activity>
     </application>
 
 </manifest>

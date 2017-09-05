@@ -10,6 +10,7 @@ public class Constant {
     public static final String IMAGE_DIRECTORY_NAME = "Android File Upload";
 	public static final String LIST_FILE = "list_file";
 	public static final String LIST_FILE_OFFICE = "list_file_office";
+	public static final String TAG_AUTO_UPLOAD = "";
 
 	/*
 	*

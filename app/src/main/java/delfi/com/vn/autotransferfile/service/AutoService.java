@@ -20,6 +20,8 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
+import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
+import delfi.com.vn.autotransferfile.service.downloadservice.Sequence;
 import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -34,6 +36,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private RecursiveFileObserver recursiveFileObserver;
     private Storage storage ;
     private List<CAutoFileOffice> listOffice;
+    private DownloadService downloadService ;
     public AutoService() {
 
     }
@@ -90,6 +93,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     public void onCreate() {
         super.onCreate();
         AutoApplication.getInstance().setConnectivityListener(this);
+        downloadService = new DownloadService(this);
         storage = new Storage(getApplicationContext());
         listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
@@ -153,8 +157,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
     }
-
-
+    
     public void uploadMultipart(final Context context, String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
@@ -177,6 +180,14 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
+
+        if (isConnected){
+            for (int i = 0 ; i < 1; i++){
+                int nextValue = Sequence.nextValue();
+                downloadService.intDownLoad(nextValue);
+            }
+        }
+
         Observable.create(subscriber -> {
             boolean isActive = false;
             try {

@@ -1,10 +1,12 @@
 package delfi.com.vn.autotransferfile.model;
 
+import java.io.Serializable;
+
 /**
  * Created by PC on 8/30/2017.
  */
 
-public class CAuToUpload {
+public class CAuToUpload implements Serializable {
 
     public String name ;
     public String full_path ;

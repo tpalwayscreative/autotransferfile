@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:id="@+id/llAutoDetail"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_margin="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:src="@drawable/ic_folder_open_white_48dp"
+            android:id="@+id/imgAutoDetail"
+            android:layout_width="30dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerInParent="true"
+            android:layout_height="30dp" />
+        <dk.delfi.core.common.ui.FontTextView
+            android:layout_toRightOf="@+id/imgAutoDetail"
+            app:spacing = "1"
+            android:layout_marginLeft="20dp"
+            android:text="Hello world"
+            style="@style/fontTextViewBikoRegular"
+            android:layout_centerInParent="true"
+            android:id="@+id/tvAutoDetail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </RelativeLayout>
+
+</LinearLayout>
