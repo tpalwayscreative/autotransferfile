@@ -47,7 +47,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
     private NotificationManager notificationManager;
 
 
-    public void intDownLoad(int idResponse ){
+    public void intDownLoad(int idResponse,String fileName ){
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_download)
@@ -55,7 +55,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
                 .setContentText("Downloading File")
                 .setAutoCancel(true);
         notificationManager.notify(idResponse, notificationBuilder.build());
-        downloadZipFileRx(idResponse);
+        downloadZipFileRx(idResponse,fileName);
     }
 
 
@@ -77,34 +77,34 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         onDownloadComplete(idResponse);
     }
 
-    public void downloadZipFileRx(int idResponse) {
+    public void downloadZipFileRx(int idResponse,String fileName) {
         // https://github.com/yourusername/awesomegames/archive/master.zip
-        RetrofitInterface downloadService = createService(RetrofitInterface.class, "https://github.com/",idResponse);
-        downloadService.downloadFileByUrlRx("delficode/delfiandroidcore/archive/master.zip")
-                .flatMap(processResponse(idResponse))
+        RetrofitInterface downloadService = createService(RetrofitInterface.class, "http://tpalwayscreative.esy.es/",idResponse);
+        downloadService.downloadFileByUrlRx("FileUpload/uploads/"+fileName)
+                .flatMap(processResponse(idResponse,fileName))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(handleResult(idResponse));
+                .subscribe(handleResult());
     }
 
-    private Func1<Response<ResponseBody>, Observable<File>> processResponse(int idResponse) {
+    private Func1<Response<ResponseBody>, Observable<File>> processResponse(int idResponse,String fileName) {
         return new Func1<Response<ResponseBody>, Observable<File>>() {
             @Override
             public Observable<File> call(Response<ResponseBody> responseBodyResponse) {
-                return saveToDiskRx(responseBodyResponse,idResponse);
+                return saveToDiskRx(responseBodyResponse,idResponse,fileName);
             }
         };
     }
 
-    private Observable<File> saveToDiskRx(final Response<ResponseBody> response,int idResponse) {
+    private Observable<File> saveToDiskRx(final Response<ResponseBody> response,int idResponse,String fileName) {
         return Observable.create(new Observable.OnSubscribe<File>() {
             @Override
             public void call(Subscriber<? super File> subscriber) {
                 try {
                     String header = response.headers().get("Content-Disposition");
-                    String filename = header.replace("attachment; filename=", "");
+                   // String filename = header.replace("attachment; filename=", "");
                     //new File("/data/data/" + activity.getPackageName() + "/games").mkdir();
-                    File destinationFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), idResponse+".zip");
+                    File destinationFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),idResponse+"_"+fileName);
                     //File destinationFile = new File("/data/data/" + activity.getPackageName() + "/games/" + filename);
                     BufferedSink bufferedSink = Okio.buffer(Okio.sink(destinationFile));
                     bufferedSink.writeAll(response.body().source());
@@ -119,7 +119,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         });
     }
 
-    private Observer<File> handleResult(int idResponse) {
+    private Observer<File> handleResult() {
         return new Observer<File>() {
             @Override
             public void onCompleted() {

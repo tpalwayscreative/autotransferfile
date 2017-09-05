@@ -6,10 +6,17 @@ import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
+
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 import com.snatik.storage.Storage;
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.UploadNotificationConfig;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,15 +26,17 @@ import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
+import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
 import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import delfi.com.vn.autotransferfile.service.downloadservice.Sequence;
 import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
+import dk.delfi.core.common.controller.RealmController;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener {
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,RealmController.RealmControllerListener<CFileDocument> {
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
@@ -37,6 +46,9 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private Storage storage ;
     private List<CAutoFileOffice> listOffice;
     private DownloadService downloadService ;
+    private RealmController realmController ;
+    private List<CFileDocument>fileDocumentList ;
+    private String stringRealm;
     public AutoService() {
 
     }
@@ -94,6 +106,10 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         super.onCreate();
         AutoApplication.getInstance().setConnectivityListener(this);
         downloadService = new DownloadService(this);
+        realmController = RealmController.with(this);
+        fileDocumentList = new ArrayList<>();
+        realmController.getALLObject(CFileDocument.class);
+        Log.d(TAG,"getAllObject");
         storage = new Storage(getApplicationContext());
         listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
@@ -157,7 +173,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
     }
-    
+
     public void uploadMultipart(final Context context, String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
@@ -181,16 +197,16 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
 
-        if (isConnected){
-            for (int i = 0 ; i < 1; i++){
-                int nextValue = Sequence.nextValue();
-                downloadService.intDownLoad(nextValue);
-            }
-        }
-
         Observable.create(subscriber -> {
             boolean isActive = false;
             try {
+                for (CFileDocument index : fileDocumentList){
+                    if (isConnected){
+                        int nextValue = Sequence.nextValue();
+                        downloadService.intDownLoad(nextValue,index.file_name);
+                    }
+                }
+
                 List<CAutoFileOffice> list = FileUtil.mReadJsonDataFileOffice(this,Constant.LIST_FILE_OFFICE);
                 for (CAutoFileOffice index:list){
                     if (isConnected){
@@ -215,5 +231,43 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         listOffice = new ArrayList<CAutoFileOffice>();
                     }
                 });
+    }
+
+    @Override
+    public void onShowRealmObject(CFileDocument cFileDocument) {
+
+    }
+
+    @Override
+    public void onShowRealmList(List<CFileDocument> list) {
+        if (list!=null){
+            fileDocumentList = realmController.getRealm().copyFromRealm(list);
+            Log.d(TAG,"Must do : "+ new Gson().toJson(fileDocumentList));
+        }
+    }
+
+    @Override
+    public void onShowRealmCheck(boolean b) {
+
+    }
+
+    @Override
+    public void onShowRealmQueryItem(CFileDocument cFileDocument) {
+
+    }
+
+    @Override
+    public void onRealmUpdated(CFileDocument cFileDocument) {
+
+    }
+
+    @Override
+    public void onRealmDeleted(boolean b) {
+
+    }
+
+    @Override
+    public void onRealmInserted(CFileDocument cFileDocument) {
+
     }
 }

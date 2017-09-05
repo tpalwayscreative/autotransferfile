@@ -205,7 +205,7 @@ public class FileUtil implements FileFilter {
         return false;
     }
 
-    public static String getMacAddr() {
+    public static String getMacAddress() {
         try {
             List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface nif : all) {

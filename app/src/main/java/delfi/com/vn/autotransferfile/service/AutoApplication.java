@@ -20,23 +20,28 @@ import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.SharePreferencesFile;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
 import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
+import dk.delfi.core.common.controller.RealmController;
 
 /**
  * Created by PC on 8/29/2017.
  */
 
-public class AutoApplication extends BaseApplication implements Application.ActivityLifecycleCallbacks {
+public class AutoApplication extends BaseApplication implements Application.ActivityLifecycleCallbacks,RealmController.RealmControllerListener<CFileDocument> {
     public static final String TAG = AutoApplication.class.getSimpleName();
     private Storage storage ;
     private static AutoApplication mInstance;
+    private RealmController realms ;
     @Override
     public void onCreate() {
         super.onCreate();
         mInstance = this;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         UploadService.HTTP_STACK = new OkHttpStack();
+        realms = RealmController.with(this);
+        initDownloadData();
 
         if (!FileUtil.mCheckFileExisting(getApplicationContext(),Constant.LIST_FILE)){
             initData();
@@ -105,6 +110,69 @@ public class AutoApplication extends BaseApplication implements Application.Acti
         }
         list.add(new CAuToUpload(storage.getExternalStorageDirectory(Environment.DIRECTORY_DOWNLOADS),"Downloads",false));
         FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE,new Gson().toJson(list));
+    }
+
+    public void initDownloadData(){
+
+        CFileDocument fileDocument = new CFileDocument();
+        fileDocument.device_id = FileUtil.getMacAddress();
+        fileDocument.folder_id = 1;
+        fileDocument.group_id = 001;
+        fileDocument.status = 0;
+        fileDocument.file_document_id = 002;
+        fileDocument.file_name = "20170831_175247.jpg";
+        fileDocument.created_date = "05/09/2017";
+        fileDocument.updated_date = "05/09/2017";
+
+        realms.mInsertObject(fileDocument);
+
+        fileDocument.device_id = FileUtil.getMacAddress();
+        fileDocument.folder_id = 2;
+        fileDocument.group_id = 002;
+        fileDocument.status = 0;
+        fileDocument.file_document_id = 003;
+        fileDocument.file_name = "20170831_175332.jpg";
+        fileDocument.created_date = "05/09/2017";
+        fileDocument.updated_date = "05/09/2017";
+        realms.mInsertObject(fileDocument);
+
+    }
+
+    @Override
+    public void onShowRealmObject(CFileDocument cFileDocument) {
+
+    }
+
+    @Override
+    public void onShowRealmList(List<CFileDocument> list) {
+
+    }
+
+    @Override
+    public void onShowRealmCheck(boolean b) {
+
+    }
+
+    @Override
+    public void onShowRealmQueryItem(CFileDocument cFileDocument) {
+
+    }
+
+    @Override
+    public void onRealmUpdated(CFileDocument cFileDocument) {
+
+    }
+
+    @Override
+    public void onRealmDeleted(boolean b) {
+
+    }
+
+    @Override
+    public void onRealmInserted(CFileDocument cFileDocument) {
+        CFileDocument fileDocument = cFileDocument;
+       // Log.d(TAG,"New Json : " + new Gson().toJson(fileDocument));
+        Log.d(TAG,"Inserted successfully: " + new Gson().toJson(fileDocument.toString()));
     }
 }
 
