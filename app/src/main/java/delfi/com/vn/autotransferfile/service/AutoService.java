@@ -6,17 +6,10 @@ import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
-
 import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
 import com.snatik.storage.Storage;
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.UploadNotificationConfig;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
