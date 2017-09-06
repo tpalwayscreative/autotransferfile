@@ -2,12 +2,10 @@ package delfi.com.vn.autotransferfile.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
 import com.google.gson.Gson;
-import com.snatik.storage.Storage;
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.UploadNotificationConfig;
 import java.io.File;
@@ -36,7 +34,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private Observer pictureObserver ;
     private Observer downloadsObserver;
     private RecursiveFileObserver recursiveFileObserver;
-
     private List<CAutoFileOffice> listOffice;
     private DownloadService downloadService ;
     private AutoServicePresenter presenter;
@@ -160,7 +157,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
     }
-
 
     public void uploadMultipart(final Context context, String filePath) {
         try {

@@ -41,7 +41,6 @@ public class AutoApplication extends BaseApplication implements Application.Acti
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         UploadService.HTTP_STACK = new OkHttpStack();
         realms = RealmController.with(this);
-        initDownloadData();
 
         if (!FileUtil.mCheckFileExisting(getApplicationContext(),Constant.LIST_FILE)){
             initData();
@@ -115,31 +114,6 @@ public class AutoApplication extends BaseApplication implements Application.Acti
         }
         list.add(new CAuToUpload(storage.getExternalStorageDirectory(Environment.DIRECTORY_DOWNLOADS),"Download",false));
         FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE,new Gson().toJson(list));
-    }
-
-    public void initDownloadData(){
-
-        CFileDocument fileDocument = new CFileDocument();
-        fileDocument.device_id = FileUtil.getMacAddress();
-        fileDocument.folder_id = 1;
-        fileDocument.group_id = 001;
-        fileDocument.status = 0;
-        fileDocument.file_document_id = 002;
-        fileDocument.file_name = "20170831_175247.jpg";
-        fileDocument.created_date = "05/09/2017";
-        fileDocument.updated_date = "05/09/2017";
-        realms.mInsertObject(fileDocument);
-
-        fileDocument.device_id = FileUtil.getMacAddress();
-        fileDocument.folder_id = 2;
-        fileDocument.group_id = 002;
-        fileDocument.status = 0;
-        fileDocument.file_document_id = 003;
-        fileDocument.file_name = "20170831_175332.jpg";
-        fileDocument.created_date = "05/09/2017";
-        fileDocument.updated_date = "05/09/2017";
-        realms.mInsertObject(fileDocument);
-
     }
 
     @Override

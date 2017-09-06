@@ -55,8 +55,8 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
     @Override
     public void onShowRealmObject(CUser cUser) {
         if (cUser != null){
-            cUser = instance.getRealm().copyFromRealm(cUser);
-            this.author = cUser.apiKey;
+                CUser cUser1  = instance.getRealm().copyFromRealm(cUser);
+                this.author = cUser1.apiKey;
         }
     }
 
@@ -128,9 +128,10 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     view.onShowLoading();
                 })
                 .subscribe(onResponse -> {
-                    Log.d(TAG,"Login" + new Gson().toJson(onResponse));
+
                     instance.clearAll(CFolder.class);
                     instance.mInsertList(CFolder.class,onResponse.folder);
+                    Log.d(TAG,"show all folder : " + new Gson().toJson(onResponse));
                     view.onHideLoading();
                     view.onLoginSuccessful();
                 }, throwable -> {
@@ -223,16 +224,20 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
     @Override
     public void onRealmInserted(CUser cUser) {
         if (cUser !=null){
-            cUser = instance.getRealm().copyFromRealm(cUser);
-            this.author = cUser.apiKey;
-            Log.d(TAG,"Inserted user successfully : " + new Gson().toJson(cUser));
+            if (cUser instanceof CUser){
+                CUser cUser1 = (CUser) cUser;
+                cUser1 = instance.getRealm().copyFromRealm(cUser1);
+                this.author = cUser1.apiKey;
+                Log.d(TAG,"Inserted user successfully : " + new Gson().toJson(cUser1));
+            }
+
         }
     }
 
     @Override
     public void onRealmInsertedList(List<CUser> list) {
-        list = instance.getRealm().copyFromRealm(list);
-        Log.d(TAG,"Show list of folder : " + new Gson().toJson(list) );
+
+
     }
 
     @Override

@@ -1,18 +1,13 @@
 package delfi.com.vn.autotransferfile.service.uploadservice;
-
 import android.content.Context;
 import android.util.Log;
-
 import com.google.gson.Gson;
 import com.snatik.storage.Storage;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
@@ -37,20 +32,10 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     private Context context ;
     private ServerAPI serverAPI ;
-    private List<CFileDocument>listAllFile;
+    private List<CFileDocument>fileDocumentList;
     private RealmController realmController ;
     private String folder_name;
-    private List<CFileDocument>fileDocumentList ;
     private String author = null ;
-
-    public Storage getStorage() {
-        return storage;
-    }
-
-    public void setStorage(Storage storage) {
-        this.storage = storage;
-    }
-
     private Storage storage ;
     public static final String TAG = AutoServicePresenter.class.getSimpleName();
 
@@ -63,14 +48,11 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         realmController = RealmController.with(this);
         realmController.getFirstItem(CUser.class);
         storage = new Storage(context);
-        listAllFile = new ArrayList<>();
         fileDocumentList = new ArrayList<>();
-
     }
 
     public void initRealm(){
         realmController.getFirstItem(CUser.class);
-        realmController.getALLObject(CFileDocument.class);
     }
 
     public void getAllFile(){
@@ -89,8 +71,11 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                     Log.d(TAG,"action 0");
                 })
                 .subscribe(onResponse -> {
-                    listAllFile = onResponse.files;
-                    Log.d(TAG,"Get all file : " + new Gson().toJson(onResponse));
+                    Log.d(TAG,"json all list : "+ new Gson().toJson(onResponse));
+                    fileDocumentList = onResponse.files;
+                    realmController.clearAll(CFileDocument.class);
+                    realmController.mInsertList(CFileDocument.class,fileDocumentList);
+                    Log.d(TAG,"Get all file : " + new Gson().toJson(fileDocumentList));
                 }, throwable -> {
                     if (throwable instanceof HttpException) {
                         ResponseBody body = ((HttpException) throwable).response().errorBody();
@@ -167,17 +152,11 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     @Override
     public void onRealmInsertedList(List list) {
-
+        if (list != null){
+            List<CFileDocument> list1= realmController.getRealm().copyFromRealm(list);
+            Log.d(TAG,"Show inserted list : "+ new Gson().toJson(list1));
+        }
     }
-
-    public List<CFileDocument> getList() {
-        return listAllFile;
-    }
-
-    public void setList(List<CFileDocument> list) {
-        this.listAllFile = list;
-    }
-
 
     public String getDevice_id() {
         return device_id;
@@ -211,6 +190,14 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     public void setRealmController(RealmController realmController) {
         this.realmController = realmController;
+    }
+
+    public Storage getStorage() {
+        return storage;
+    }
+
+    public void setStorage(Storage storage) {
+        this.storage = storage;
     }
 
 
