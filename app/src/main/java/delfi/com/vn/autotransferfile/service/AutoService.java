@@ -169,6 +169,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
 
+    
     public void uploadMultipart(final Context context, String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
