@@ -27,8 +27,7 @@ public class AutoUploadActivity extends AutoUploadRemote {
 
     public static final String TAG = AutoUploadActivity.class.getSimpleName();
     private Intent intent ;
-    @BindView(R.id.fab)
-    FloatingActionButton floatingActionButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,13 +41,6 @@ public class AutoUploadActivity extends AutoUploadRemote {
         intent = new Intent(this, AutoService.class);
         startService(intent);
 
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Navigator.moveToUser(getContext());
-                finish();
-            }
-        });
 
     }
 
@@ -67,17 +59,23 @@ public class AutoUploadActivity extends AutoUploadRemote {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.action_SettingScanner :
-                if (FileUtil.mDeleteFile(this,Constant.LIST_FILE)){
-                    if (FileUtil.mCreateAndSaveFile(this, Constant.LIST_FILE,new Gson().toJson(presenter.getList()))){
-                        Toast.makeText(this,"Saved successfully",Toast.LENGTH_SHORT).show();
+            case R.id.action_SettingScanner : {
+                if (FileUtil.mDeleteFile(this, Constant.LIST_FILE)) {
+                    if (FileUtil.mCreateAndSaveFile(this, Constant.LIST_FILE, new Gson().toJson(presenter.getList()))) {
+                        Toast.makeText(this, "Saved successfully", Toast.LENGTH_SHORT).show();
                         stopService(intent);
                         startService(intent);
-                    }else{
-                        Toast.makeText(this,"Saved failed",Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Saved failed", Toast.LENGTH_SHORT).show();
                     }
                 }
-               return true ;
+                return true;
+            }
+            case R.id.action_Logout :{
+                Navigator.moveToUser(getContext());
+                finish();
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }

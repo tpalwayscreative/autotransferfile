@@ -46,7 +46,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private String device_id ;
     private String folder_name;
 
-
     public AutoService() {
 
     }
@@ -177,10 +176,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             new MultipartUploadRequest(context, Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
                     .addFileToUpload(filePath,"FileUpload")
-                    .addParameter("email","delfitest@gmail.com")
-                    .addParameter("website","http://delfi.com")
-                    .addParameter("folder_name",folder_name)
-                    .addParameter("device_id",device_id)
+                    .addParameter(Constant.TAG_FOLDER_NAME,folder_name)
+                    .addParameter(Constant.TAG_DEVICE_ID,device_id)
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setMaxRetries(2)
                     .startUpload();
@@ -253,14 +250,11 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
     @Override
     public void onShowRealmObject(Object cFileDocument) {
-
         if (cFileDocument instanceof CUser){
             cFileDocument = realmController.getRealm().copyFromRealm((CUser)cFileDocument);
             Log.d(TAG,"on Show Realm Object :" + new Gson().toJson(cFileDocument));
             this.device_id = ((CUser) cFileDocument).device_id;
-
         }
-
     }
 
     @Override

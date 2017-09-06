@@ -54,13 +54,11 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
 
     @Override
     public void onShowRealmObject(CUser cUser) {
-
         if (cUser != null){
             cUser = instance.getRealm().copyFromRealm(cUser);
             this.author = cUser.apiKey;
         }
     }
-
 
     public void userLogin(GroupRequest groupRequest){
         UserView view = view();
@@ -113,7 +111,6 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     }
                 }));
     }
-
 
     public void getListFolder(){
         UserView view = view();

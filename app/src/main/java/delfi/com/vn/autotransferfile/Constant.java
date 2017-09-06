@@ -12,6 +12,8 @@ public class Constant {
 	public static final String LIST_FILE = "list_file";
 	public static final String LIST_FILE_OFFICE = "list_file_office";
 	public static final String TAG_AUTO_UPLOAD = "";
+	public static final String TAG_FOLDER_NAME = "folder_name";
+	public static final String TAG_DEVICE_ID = "device_id";
 
 	/*
 	*
