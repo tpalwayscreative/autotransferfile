@@ -1,8 +1,10 @@
 package delfi.com.vn.autotransferfile.common.api;
 import java.util.HashMap;
 
+import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
 import delfi.com.vn.autotransferfile.common.api.request.GroupRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
+import delfi.com.vn.autotransferfile.common.api.response.FileDocumentResponse;
 import delfi.com.vn.autotransferfile.common.api.response.FolderResponse;
 import delfi.com.vn.autotransferfile.common.api.response.GroupResponse;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponse;
@@ -38,6 +40,8 @@ public interface ServerAPI {
     String USER_SIGNUP = "/api/user/Register";
     String GROUP_LOGIN = "/api/device/Login";
     String AUTO_GET_LIST_FOLDER = "/api/folder/GetCurentFolder";
+    String AUTO_GET_ALL_FILE = "/api/file/GetAllCurentFiles/";
+    String AUTO_GET_CURRENT_FILE = "/api/file/GetCurentFiles/";
 
 
     @FormUrlEncoded
@@ -57,6 +61,11 @@ public interface ServerAPI {
     @GET(AUTO_GET_LIST_FOLDER)
     Observable<FolderResponse>getListFolder();
 
+    @GET(AUTO_GET_ALL_FILE)
+    Observable<FileDocumentResponse>getALLFile();
+
+    @POST(AUTO_GET_CURRENT_FILE)
+    Observable<FileDocumentResponse>getAllFile(@Body FileDocumentRequest request);
 
     @Streaming
     @GET

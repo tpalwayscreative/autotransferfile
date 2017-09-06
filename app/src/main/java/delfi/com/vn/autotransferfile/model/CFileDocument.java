@@ -23,8 +23,6 @@ public class CFileDocument extends RealmObject{
 
     public CFileDocument(){
 
-
-
     }
 
     public CFileDocument(int file_document_id,String file_name,String created_date,String updated_date,int status,int group_id,int folder_id,String device_id){
@@ -36,8 +34,6 @@ public class CFileDocument extends RealmObject{
         this.group_id = group_id;
         this.folder_id = folder_id;
         this.device_id = device_id;
-
     }
-
 
 }

@@ -12,7 +12,6 @@ import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.UploadNotificationConfig;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import delfi.com.vn.autotransferfile.Constant;
@@ -20,31 +19,27 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
-import delfi.com.vn.autotransferfile.model.CUser;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
 import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import delfi.com.vn.autotransferfile.service.downloadservice.Sequence;
 import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
-import dk.delfi.core.common.controller.RealmController;
+import delfi.com.vn.autotransferfile.service.uploadservice.AutoServicePresenter;
+import delfi.com.vn.autotransferfile.service.uploadservice.AutoServiceView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,RealmController.RealmControllerListener{
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,AutoServiceView<CFileDocument>{
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
     private Observer pictureObserver ;
     private Observer downloadsObserver;
     private RecursiveFileObserver recursiveFileObserver;
-    private Storage storage ;
+
     private List<CAutoFileOffice> listOffice;
     private DownloadService downloadService ;
-    private RealmController realmController ;
-    private List<CFileDocument>fileDocumentList ;
-    private String stringRealm;
-    private String device_id ;
-    private String folder_name;
+    private AutoServicePresenter presenter;
 
     public AutoService() {
 
@@ -103,11 +98,10 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         super.onCreate();
         AutoApplication.getInstance().setConnectivityListener(this);
         downloadService = new DownloadService(this);
-        realmController = RealmController.with(this);
-        realmController.getFirstItem(CUser.class);
-        fileDocumentList = new ArrayList<>();
-        realmController.getALLObject(CFileDocument.class);
-        storage = new Storage(getApplicationContext());
+        presenter = new AutoServicePresenter(this);
+        presenter.bindView(this);
+        presenter.initRealm();
+        presenter.getAllFile();
         listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
             List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
@@ -138,7 +132,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
     private class Observer extends FileObserver {
         private String path;
-
         public Observer(String path) {
             super(path, FileObserver.CREATE);
             this.path = path;
@@ -151,8 +144,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
                 for (CAuToUpload index : list){
                     String nameFile = index.full_path+"/"+file;
-                    folder_name = index.name;
-                    if (index.isEnable && storage.isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
+                    presenter.setFolder_name(index.name);
+                    if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
                         if (ConnectivityReceiver.isConnected()){
                             Log.d(TAG,"Event is :"+nameFile);
                             uploadMultipart(getApplicationContext(),nameFile);
@@ -169,7 +162,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
 
-    
     public void uploadMultipart(final Context context, String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
@@ -177,8 +169,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             new MultipartUploadRequest(context, Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
                     .addFileToUpload(filePath,"FileUpload")
-                    .addParameter(Constant.TAG_FOLDER_NAME,folder_name)
-                    .addParameter(Constant.TAG_DEVICE_ID,device_id)
+                    .addParameter(Constant.TAG_FOLDER_NAME,presenter.getFolder_name())
+                    .addParameter(Constant.TAG_DEVICE_ID,presenter.getDevice_id())
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setMaxRetries(2)
                     .startUpload();
@@ -216,7 +208,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         Observable.create(subscriber -> {
             boolean isActive = false;
             try {
-                for (CFileDocument index : fileDocumentList){
+                for (CFileDocument index : presenter.getFileDocumentList()){
                     if (isConnected){
                         int nextValue = Sequence.nextValue();
                         downloadService.intDownLoad(nextValue,index.file_name);
@@ -249,51 +241,44 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 });
     }
 
-    @Override
-    public void onShowRealmObject(Object cFileDocument) {
-        if (cFileDocument instanceof CUser){
-            cFileDocument = realmController.getRealm().copyFromRealm((CUser)cFileDocument);
-            Log.d(TAG,"on Show Realm Object :" + new Gson().toJson(cFileDocument));
-            this.device_id = ((CUser) cFileDocument).device_id;
-        }
-    }
 
     @Override
-    public void onShowRealmList(List list) {
-        if (list!=null){
-            fileDocumentList = realmController.getRealm().copyFromRealm(list);
-            Log.d(TAG,"Must do : "+ new Gson().toJson(fileDocumentList));
-        }
-    }
-
-    @Override
-    public void onShowRealmCheck(boolean b) {
+    public void onUpload(List<CFileDocument> list) {
 
     }
 
     @Override
-    public void onShowRealmQueryItem(Object cFileDocument) {
+    public void onShowLoading() {
 
     }
 
     @Override
-    public void onRealmUpdated(Object cFileDocument) {
+    public void onHideLoading() {
 
     }
 
     @Override
-    public void onRealmDeleted(boolean b) {
+    public Context getContext() {
+        return getApplicationContext();
+    }
+
+    @Override
+    public void onShowListObjects(List<CFileDocument> list) {
 
     }
 
     @Override
-    public void onRealmInsertedList(List list) {
+    public void onShowObjects(CFileDocument cFileDocument) {
 
     }
 
     @Override
-    public void onRealmInserted(Object cFileDocument) {
-
+    public List<CFileDocument> onGetListObjects() {
+        return null;
     }
 
+    @Override
+    public CFileDocument onGetObjects() {
+        return null;
+    }
 }
