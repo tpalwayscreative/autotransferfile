@@ -39,8 +39,8 @@ public class PermissionUtils {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-
     public static boolean checkAndRequestPermissions(Activity activity) {
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
         }
@@ -51,7 +51,6 @@ public class PermissionUtils {
         int read_external_permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
         int read_phone_state_permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_PHONE_STATE);
         int allow_camera = ContextCompat.checkSelfPermission(activity,  Manifest.permission.CAMERA);
-
 
         List<String> listPermissionsNeeded = new ArrayList<>();
 

@@ -123,7 +123,6 @@ public class AutoApplication extends BaseApplication implements Application.Acti
         fileDocument.file_name = "20170831_175247.jpg";
         fileDocument.created_date = "05/09/2017";
         fileDocument.updated_date = "05/09/2017";
-
         realms.mInsertObject(fileDocument);
 
         fileDocument.device_id = FileUtil.getMacAddress();
@@ -170,9 +169,8 @@ public class AutoApplication extends BaseApplication implements Application.Acti
 
     @Override
     public void onRealmInserted(CFileDocument cFileDocument) {
-        CFileDocument fileDocument = cFileDocument;
-       // Log.d(TAG,"New Json : " + new Gson().toJson(fileDocument));
-        Log.d(TAG,"Inserted successfully: " + new Gson().toJson(fileDocument.toString()));
+        CFileDocument fileDocument = realms.getRealm().copyFromRealm(cFileDocument);
+        Log.d(TAG,"Inserted successfully: " + new Gson().toJson(fileDocument));
     }
 }
 

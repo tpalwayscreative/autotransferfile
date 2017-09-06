@@ -58,7 +58,6 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         downloadZipFileRx(idResponse,fileName);
     }
 
-
     @Override
     public void onAttachmentDownloadUpdate(int percent,int idResponse) {
         Log.d(TAG,"Downloading : "+ percent);
@@ -173,6 +172,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         notificationManager.notify(idResponse, notificationBuilder.build());
     }
 
+
 //    @Override
 //    public void onNetworkConnectionChanged(boolean isConnected) {
 //        Log.d(TAG,"show changed network : ");
@@ -183,6 +183,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 //            }
 //        }
 //    }
+
 
 }
 
