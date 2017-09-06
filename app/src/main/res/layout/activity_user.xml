@@ -24,7 +24,7 @@
             android:layout_below="@+id/edtName"
             android:id="@+id/btnLogin"
             android:textColor="@color/white"
-            android:background="@color/colorPrimary"
+            android:background="@drawable/background_radius_button_send"
             android:text="@string/tvLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />

@@ -42,6 +42,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private RealmController realmController ;
     private List<CFileDocument>fileDocumentList ;
     private String stringRealm;
+
     public AutoService() {
 
     }
@@ -102,7 +103,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         realmController = RealmController.with(this);
         fileDocumentList = new ArrayList<>();
         realmController.getALLObject(CFileDocument.class);
-        Log.d(TAG,"getAllObject");
         storage = new Storage(getApplicationContext());
         listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
@@ -122,10 +122,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         downloadsObserver.startWatching();
                     }
                 }
-            }
-            if (storage.isDirectoryExists(storage.getExternalStorageDirectory(Environment.DIRECTORY_DCIM+"/Camera/")))
-            {
-                Log.d(TAG,"is existing");
             }
             Log.d(TAG,"Start service here");
             subscriber.onNext(null);
@@ -263,5 +259,5 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     public void onRealmInserted(CFileDocument cFileDocument) {
 
     }
-    
+
 }
