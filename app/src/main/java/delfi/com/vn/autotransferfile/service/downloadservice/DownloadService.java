@@ -137,6 +137,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
             }
         };
     }
+    
 
     public <T> T createService(Class<T> serviceClass, String baseUrl,int idResponse) {
         Retrofit retrofit = new Retrofit.Builder()
