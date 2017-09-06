@@ -4,6 +4,7 @@ public class Constant {
 
 	// File upload url (replace the ip with your server address)
 	public static final String FILE_UPLOAD_URL = "http://tpalwayscreative.esy.es/FileUpload/fileUploadMobile.php";
+	public static final String File_UPLOAD_AUTO = BuildConfig.BASE_URL_API + "/api/fileupload/FileUpload";
 	public static final String BASE_URL = BuildConfig.BASE_URL_API ;
 	
 	// Directory name to store captured images and videos

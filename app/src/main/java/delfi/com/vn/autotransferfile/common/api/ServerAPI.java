@@ -1,7 +1,10 @@
 package delfi.com.vn.autotransferfile.common.api;
 import java.util.HashMap;
 
+import delfi.com.vn.autotransferfile.common.api.request.GroupRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
+import delfi.com.vn.autotransferfile.common.api.response.FolderResponse;
+import delfi.com.vn.autotransferfile.common.api.response.GroupResponse;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponse;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponseOption;
 import okhttp3.ResponseBody;
@@ -22,6 +25,8 @@ import rx.Observable;
 
 public interface ServerAPI {
 
+
+
     String USER_REGISTER = "/task_manager/v1/register";
     String USER_LOGIN = "/task_manager/v1/login";
     String TASKS_ADD = "/task_manager/v1/tasks";
@@ -31,7 +36,8 @@ public interface ServerAPI {
     String TASKS_DETAIL = "/task_manager/v1/tasks/{id}";
     String TASKS_LOAD_MORE = "/task_manager/v1/tasksLoadMore";
     String USER_SIGNUP = "/api/user/Register";
-
+    String GROUP_LOGIN = "/api/device/Login";
+    String AUTO_GET_LIST_FOLDER = "/api/folder/GetCurentFolder";
 
 
     @FormUrlEncoded
@@ -44,6 +50,13 @@ public interface ServerAPI {
 
     @POST(USER_SIGNUP)
     Observable<UserResponseOption> signUp(@Body UserRequestOption userRequest);
+
+    @POST(GROUP_LOGIN)
+    Observable<GroupResponse> login(@Body GroupRequest groupRequest);
+
+    @GET(AUTO_GET_LIST_FOLDER)
+    Observable<FolderResponse>getListFolder();
+
 
     @Streaming
     @GET

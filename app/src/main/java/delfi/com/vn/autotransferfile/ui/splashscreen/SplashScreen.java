@@ -56,6 +56,11 @@ public class SplashScreen extends BaseActivity implements RealmController.RealmC
     }
 
     @Override
+    public void onRealmInsertedList(List<CUser> list) {
+
+    }
+
+    @Override
     public void onRealmUpdated(CUser cUser) {
 
     }

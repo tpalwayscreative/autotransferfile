@@ -92,6 +92,11 @@ public class AutoApplication extends BaseApplication implements Application.Acti
 
     }
 
+    @Override
+    public void onRealmInsertedList(List<CFileDocument> list) {
+
+    }
+
     public void initData(){
         storage = new Storage(getApplicationContext());
         List<CAuToUpload>list = new ArrayList<>();
@@ -103,12 +108,12 @@ public class AutoApplication extends BaseApplication implements Application.Acti
         if (!storage.isDirectoryExists(storage.getExternalStorageDirectory(Environment.DIRECTORY_PICTURES))){
             storage.createDirectory(storage.getExternalStorageDirectory(Environment.DIRECTORY_PICTURES));
         }
-        list.add(new CAuToUpload(storage.getExternalStorageDirectory(Environment.DIRECTORY_PICTURES),"Picture",false));
+        list.add(new CAuToUpload(storage.getExternalStorageDirectory(Environment.DIRECTORY_PICTURES),"Pictures",false));
 
         if (!storage.isDirectoryExists(storage.getExternalStorageDirectory(Environment.DIRECTORY_DOWNLOADS))){
             storage.createDirectory(storage.getExternalStorageDirectory(Environment.DIRECTORY_DOWNLOADS));
         }
-        list.add(new CAuToUpload(storage.getExternalStorageDirectory(Environment.DIRECTORY_DOWNLOADS),"Downloads",false));
+        list.add(new CAuToUpload(storage.getExternalStorageDirectory(Environment.DIRECTORY_DOWNLOADS),"Download",false));
         FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE,new Gson().toJson(list));
     }
 

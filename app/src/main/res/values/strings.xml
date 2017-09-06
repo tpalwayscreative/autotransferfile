@@ -223,5 +223,6 @@
     <string name="tvInfo">Please choose which folders you want to synchronize</string>
     <string name="tvLogin">Login</string>
     <string name="tvCheckNetwork">Please check Internet connection</string>
+    <string name="tvInputGroupName">Input group name</string>
 
 </resources>

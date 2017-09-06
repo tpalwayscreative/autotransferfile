@@ -14,6 +14,7 @@ public class CUser extends RealmObject implements Serializable{
     public String name;
     public String email;
     public String createdAt;
+    public String device_id;
 
     public CUser(){
 

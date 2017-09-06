@@ -20,6 +20,7 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
+import delfi.com.vn.autotransferfile.model.CUser;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
 import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import delfi.com.vn.autotransferfile.service.downloadservice.Sequence;
@@ -29,7 +30,7 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,RealmController.RealmControllerListener<CFileDocument> {
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,RealmController.RealmControllerListener{
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
@@ -42,6 +43,9 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private RealmController realmController ;
     private List<CFileDocument>fileDocumentList ;
     private String stringRealm;
+    private String device_id ;
+    private String folder_name;
+
 
     public AutoService() {
 
@@ -101,6 +105,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         AutoApplication.getInstance().setConnectivityListener(this);
         downloadService = new DownloadService(this);
         realmController = RealmController.with(this);
+        realmController.getFirstItem(CUser.class);
         fileDocumentList = new ArrayList<>();
         realmController.getALLObject(CFileDocument.class);
         storage = new Storage(getApplicationContext());
@@ -147,6 +152,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
                 for (CAuToUpload index : list){
                     String nameFile = index.full_path+"/"+file;
+                    folder_name = index.name;
                     if (index.isEnable && storage.isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
                         if (ConnectivityReceiver.isConnected()){
                             Log.d(TAG,"Event is :"+nameFile);
@@ -163,6 +169,27 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
     }
 
+
+    public void uploadMultipart(final Context context, String filePath) {
+        try {
+            ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
+            Log.d(TAG,"file upload : "+ filePath);
+            new MultipartUploadRequest(context, Constant.File_UPLOAD_AUTO)
+                    // starting from 3.1+, you can also use content:// URI string instead of absolute file
+                    .addFileToUpload(filePath,"FileUpload")
+                    .addParameter("email","delfitest@gmail.com")
+                    .addParameter("website","http://delfi.com")
+                    .addParameter("folder_name",folder_name)
+                    .addParameter("device_id",device_id)
+                    .setNotificationConfig(new UploadNotificationConfig())
+                    .setMaxRetries(2)
+                    .startUpload();
+        } catch (Exception exc) {
+            Log.e("AndroidUploadService", exc.getMessage(), exc);
+        }
+    }
+
+    /*
     public void uploadMultipart(final Context context, String filePath) {
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
@@ -182,6 +209,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
     }
+
+    */
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
@@ -223,12 +252,19 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
     @Override
-    public void onShowRealmObject(CFileDocument cFileDocument) {
+    public void onShowRealmObject(Object cFileDocument) {
+
+        if (cFileDocument instanceof CUser){
+            cFileDocument = realmController.getRealm().copyFromRealm((CUser)cFileDocument);
+            Log.d(TAG,"on Show Realm Object :" + new Gson().toJson(cFileDocument));
+            this.device_id = ((CUser) cFileDocument).device_id;
+
+        }
 
     }
 
     @Override
-    public void onShowRealmList(List<CFileDocument> list) {
+    public void onShowRealmList(List list) {
         if (list!=null){
             fileDocumentList = realmController.getRealm().copyFromRealm(list);
             Log.d(TAG,"Must do : "+ new Gson().toJson(fileDocumentList));
@@ -241,12 +277,12 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
     @Override
-    public void onShowRealmQueryItem(CFileDocument cFileDocument) {
+    public void onShowRealmQueryItem(Object cFileDocument) {
 
     }
 
     @Override
-    public void onRealmUpdated(CFileDocument cFileDocument) {
+    public void onRealmUpdated(Object cFileDocument) {
 
     }
 
@@ -256,7 +292,12 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
     @Override
-    public void onRealmInserted(CFileDocument cFileDocument) {
+    public void onRealmInsertedList(List list) {
+
+    }
+
+    @Override
+    public void onRealmInserted(Object cFileDocument) {
 
     }
 

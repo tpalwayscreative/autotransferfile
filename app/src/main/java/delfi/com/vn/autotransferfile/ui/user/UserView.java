@@ -11,4 +11,5 @@ public interface UserView extends BaseView<CUser> {
     void onShowNameError(int resId);
     void onShowError(String alert);
     String onGetName();
+    void onLoginSuccessful();
 }

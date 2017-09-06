@@ -15,9 +15,12 @@ import java.util.Map;
 import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
+import delfi.com.vn.autotransferfile.common.api.request.GroupRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
+import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
+import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
 import dk.delfi.core.Dependencies;
 import dk.delfi.core.common.controller.RealmController;
@@ -46,16 +49,112 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
         dependencies.init();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
         instance = RealmController.with(this);
+        instance.getFirstItem(CUser.class);
     }
-
-
 
     @Override
     public void onShowRealmObject(CUser cUser) {
-        Log.d(TAG,"ShowRealmObject : "+new Gson().toJson(cUser));
+
         if (cUser != null){
+            cUser = instance.getRealm().copyFromRealm(cUser);
             this.author = cUser.apiKey;
         }
+    }
+
+
+    public void userLogin(GroupRequest groupRequest){
+        UserView view = view();
+        if (view == null) {
+            return;
+        }
+        if (NetworkUtil.pingIpAddress(view.getContext())) {
+            view.onShowError(view.getContext().getString(R.string.tvCheckNetwork));
+            return;
+        }
+        if (view.onGetName()==null || view.onGetName().equals(""))
+        {
+            view.onShowNameError(R.string.tvInputGroupName);
+            return;
+        }
+        Log.d(TAG,new Gson().toJson(groupRequest));
+        subscriptions.add(serverAPI.login(groupRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(() -> {
+                    Log.d(TAG,"action 0");
+                    view.onShowLoading();
+                })
+                .subscribe(onResponse -> {
+                    CUser user = new CUser();
+                    user.apiKey = onResponse.access_token;
+                    user.device_id = onResponse.device_id;
+                    instance.clearAll(CUser.class);
+                    instance.mInsertObject(user);
+                    Log.d(TAG,"Login" + new Gson().toJson(onResponse));
+                    getListFolder();
+                    view.onHideLoading();
+                }, throwable -> {
+                    view.onHideLoading();
+                    if (throwable instanceof HttpException) {
+                        ResponseBody body = ((HttpException) throwable).response().errorBody();
+                        try {
+                            JSONObject object = new JSONObject(body.string());
+                            view.onShowError(object.getString("error_message"));
+                        } catch (JSONException e) {
+                            view.onShowError(throwable.getMessage());
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            view.onShowError(throwable.getMessage());
+                            e.printStackTrace();
+                        }
+                    }else {
+                        Log.d(TAG,"action 2");
+                        view.onShowError(throwable.getMessage());
+                    }
+                }));
+    }
+
+
+    public void getListFolder(){
+        UserView view = view();
+        if (view == null) {
+            return;
+        }
+        if (NetworkUtil.pingIpAddress(view.getContext())) {
+            view.onShowError(view.getContext().getString(R.string.tvCheckNetwork));
+            return;
+        }
+        subscriptions.add(serverAPI.getListFolder()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(() -> {
+                    view.onShowLoading();
+                })
+                .subscribe(onResponse -> {
+                    Log.d(TAG,"Login" + new Gson().toJson(onResponse));
+                    instance.clearAll(CFolder.class);
+                    instance.mInsertList(CFolder.class,onResponse.folder);
+                    view.onHideLoading();
+                    view.onLoginSuccessful();
+                }, throwable -> {
+                    view.onHideLoading();
+                    if (throwable instanceof HttpException) {
+                        ResponseBody body = ((HttpException) throwable).response().errorBody();
+                        try {
+                            JSONObject object = new JSONObject(body.string());
+                            view.onShowError(object.getString("error_message"));
+                        } catch (JSONException e) {
+                            view.onShowError(throwable.getMessage());
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            view.onShowError(throwable.getMessage());
+                            e.printStackTrace();
+                        }
+                    }else {
+                        Log.d(TAG,"action 2");
+                        view.onShowError(throwable.getMessage());
+                    }
+                }));
     }
 
     public void userRegister(UserRequestOption userRequest) {
@@ -101,6 +200,7 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
     @Override
     public void onShowRealmList(List<CUser> list) {
 
+
     }
 
     @Override
@@ -125,7 +225,17 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
 
     @Override
     public void onRealmInserted(CUser cUser) {
+        if (cUser !=null){
+            cUser = instance.getRealm().copyFromRealm(cUser);
+            this.author = cUser.apiKey;
+            Log.d(TAG,"Inserted user successfully : " + new Gson().toJson(cUser));
+        }
+    }
 
+    @Override
+    public void onRealmInsertedList(List<CUser> list) {
+        list = instance.getRealm().copyFromRealm(list);
+        Log.d(TAG,"Show list of folder : " + new Gson().toJson(list) );
     }
 
     @Override

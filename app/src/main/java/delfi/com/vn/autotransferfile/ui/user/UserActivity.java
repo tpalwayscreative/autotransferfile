@@ -3,21 +3,29 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.EditText;
 import android.widget.Toast;
 import java.util.List;
+
+import butterknife.BindView;
 import butterknife.OnClick;
 import delfi.com.vn.autotransferfile.R;
+import delfi.com.vn.autotransferfile.common.api.request.GroupRequest;
 import delfi.com.vn.autotransferfile.common.dialog.DialogFactory;
+import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.model.CUser;
 import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import dk.delfi.core.common.activity.BaseActivity;
+import dk.delfi.core.common.utils.Utils;
 
 public class UserActivity extends BaseActivity implements UserView{
 
     public static  final String TAG = UserActivity.class.getSimpleName();
     private UserPresenter presenter ;
     private ProgressDialog pDialog ;
+    @BindView(R.id.edtName)
+    EditText edtName ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +38,9 @@ public class UserActivity extends BaseActivity implements UserView{
 
     @OnClick(R.id.btnLogin)
     public void onLogin(){
-        Navigator.moveToHome(this);
+        GroupRequest groupRequest = new GroupRequest(onGetName(),FileUtil.getMacAddress(),FileUtil.getDeviceName());
+        presenter.userLogin(groupRequest);
+       // Navigator.moveToHome(this);
         //UserRequestOption userRequestOption = new UserRequestOption("abc","123","dcf123@gmail.com");
        // presenter.userRegister(userRequestOption);
        // Intent intent = new Intent(this,DownloadService.class);
@@ -39,7 +49,15 @@ public class UserActivity extends BaseActivity implements UserView{
 
     @Override
     public void onShowNameError(int resId) {
+        edtName.setError(getString(resId));
 
+    }
+
+
+    @Override
+    public void onLoginSuccessful() {
+        Navigator.moveToHome(this);
+        finish();
     }
 
     @Override
@@ -49,7 +67,7 @@ public class UserActivity extends BaseActivity implements UserView{
 
     @Override
     public String onGetName() {
-        return null;
+        return edtName.getText().toString();
     }
 
     @Override

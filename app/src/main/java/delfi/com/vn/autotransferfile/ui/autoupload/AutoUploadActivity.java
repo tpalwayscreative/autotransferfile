@@ -2,14 +2,18 @@ package delfi.com.vn.autotransferfile.ui.autoupload;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
+
+import butterknife.BindView;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.PermissionUtils;
@@ -23,6 +27,8 @@ public class AutoUploadActivity extends AutoUploadRemote {
 
     public static final String TAG = AutoUploadActivity.class.getSimpleName();
     private Intent intent ;
+    @BindView(R.id.fab)
+    FloatingActionButton floatingActionButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +41,17 @@ public class AutoUploadActivity extends AutoUploadRemote {
         PermissionUtils.checkAndRequestPermissions(this);
         intent = new Intent(this, AutoService.class);
         startService(intent);
+
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Navigator.moveToUser(getContext());
+                finish();
+            }
+        });
+
     }
+
     @Override
     public void onCheckedChangedCheckBox(int i, boolean b) {
         super.onCheckedChangedCheckBox(i, b);
