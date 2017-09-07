@@ -102,10 +102,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         downloadService = new DownloadService(this);
         presenter = new AutoServicePresenter(this);
         presenter.bindView(this);
-        presenter.getAllFile();
         listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
-
             for (CFolder index : presenter.getListFolder()){
                 if (index.isEnable){
                     if (index.folder_name.equals("Camera")){
@@ -134,43 +132,71 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     private class Observer extends FileObserver {
         private String path;
         public Observer(String path) {
-            super(path, FileObserver.CREATE);
+            super(path, FileObserver.CLOSE_WRITE);
             this.path = path;
             Log.d(TAG,"Full path : "+ path);
         }
 
         @Override
         public void onEvent(int event, String file) {
-            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event == FileObserver.CREATE) {
-                if (!presenter.isDownloading()){
+            if (event == FileObserver.CLOSE_WRITE) {
+
+                if (ConnectivityReceiver.isConnected()){
+                    presenter.getRealmController().getSearchObject("file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD);
+                    presenter.setFile_name(file);
+                }
+                else {
+                    listOffice = FileUtil.mReadJsonDataFileOffice(getContext(),Constant.LIST_FILE_OFFICE);
+                    if (listOffice==null){
+                        listOffice = new ArrayList<>();
+                    }
                     for (CFolder index : presenter.getListFolder()){
                         String nameFile = index.path_folder_name+"/"+file;
                         presenter.setFolder_name(index.folder_name);
                         if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
-                            if (ConnectivityReceiver.isConnected()){
-                                Log.d(TAG,"Event is :"+nameFile);
-                                uploadMultipart(getApplicationContext(),nameFile);
-                            }
-                            else{
-                                listOffice.add(new CAutoFileOffice(nameFile));
-                            }
+                            listOffice.add(new CAutoFileOffice(nameFile));
                         }
                     }
+                    FileUtil.mDeleteFile(getContext(),Constant.LIST_FILE_OFFICE);
+                    FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
                 }
-
-                FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
-                Log.d(TAG, "event: " + getEventString((Integer) event) + " file: [" + file + "]");
             }
+        }
+    }
+
+    @Override
+    public void onDownLoadNow() {
+        if (NetworkUtil.pingIpAddress(getContext())) {
+            return;
+        }
+        for (int i = 0 ;i<presenter.getFileDocumentList().size();i++){
+                int nextValue = Sequence.nextValue();
+                downloadService.onProgressingDownload(this,i);
+                downloadService.intDownLoad(nextValue,presenter.getFileDocumentList().get(i).file_name,presenter.getFileDocumentList().get(i).parent_folder_name,presenter.getFileDocumentList().get(i).path_folder_name);
+        }
+    }
+
+    @Override
+    public void onUploadNow() {
+        for (CFolder index : presenter.getListFolder()){
+                String nameFile = index.path_folder_name+"/"+presenter.getFile_name();
+                presenter.setFolder_name(index.folder_name);
+                if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
+                    if (ConnectivityReceiver.isConnected()){
+                        Log.d(TAG,"Event is :"+nameFile);
+                        uploadMultipart(getApplicationContext(),nameFile);
+                    }
+                }
         }
     }
 
     public void uploadMultipart(final Context context, String filePath) {
         try {
-            ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
+            presenter.setUploading(true);
             Log.d(TAG,"file upload : "+ filePath);
             new MultipartUploadRequest(context, Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
-                    .addFileToUpload(filePath,"FileUpload")
+                    .addFileToUpload(filePath,Constant.TAG_FILE_UPLOAD)
                     .addParameter(Constant.TAG_FOLDER_NAME,presenter.getFolder_name())
                     .addParameter(Constant.TAG_DEVICE_ID,presenter.getDevice_id())
                     .setNotificationConfig(new UploadNotificationConfig())
@@ -190,13 +216,13 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
                             try{
                                 CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
-                                presenter.getRealmController().mInsertObject(fileDocument,0);
+                                presenter.setUploading(false);
+                                presenter.getRealmController().mInsertObject(fileDocument,Constant.TAG_CODE_UPLOAD);
                                 Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
                             }
                             catch (Exception e){
                                 e.printStackTrace();
                             }
-                           // presenter.getRealmController().mInsertObject(fileDocument,0);
                         }
 
                         @Override
@@ -210,28 +236,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
     }
 
-    /*
-    public void uploadMultipart(final Context context, String filePath) {
-        try {
-            ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
-            Log.d(TAG,"file upload : "+ filePath);
-            Map<String,String> hash = new HashMap<>();
-            hash.put("email","delfitest@gmail.com");
-            hash.put("website","delfi.com");
-            new MultipartUploadRequest(context, Constant.FILE_UPLOAD_URL)
-                    // starting from 3.1+, you can also use content:// URI string instead of absolute file
-                    .addFileToUpload(filePath,"image")
-                    .addParameter("email","delfitest@gmail.com")
-                    .addParameter("website","http://delfi.com")
-                    .setNotificationConfig(new UploadNotificationConfig())
-                    .setMaxRetries(2)
-                    .startUpload();
-        } catch (Exception exc) {
-            Log.e("AndroidUploadService", exc.getMessage(), exc);
-        }
-    }
-
-    */
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
@@ -239,15 +243,12 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         Observable.create(subscriber -> {
             boolean isActive = false;
             try {
-                for (CFileDocument index : presenter.getFileDocumentList()){
-                    if (isConnected){
-                        int nextValue = Sequence.nextValue();
-                        downloadService.intDownLoad(nextValue,index.file_name,index.parent_folder_name,index.path_folder_name);
-                    }
+                listOffice = FileUtil.mReadJsonDataFileOffice(getApplicationContext(),Constant.LIST_FILE_OFFICE);
+                if (listOffice == null){
+                    listOffice = new ArrayList<>();
                 }
 
-                List<CAutoFileOffice> list = FileUtil.mReadJsonDataFileOffice(this,Constant.LIST_FILE_OFFICE);
-                for (CAutoFileOffice index:list){
+                for (CAutoFileOffice index : listOffice){
                     if (isConnected){
                         uploadMultipart(this,index.pathFile);
                         isActive = true;
@@ -267,41 +268,15 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     if (isResponse){
                         FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
                         FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
-                        listOffice = new ArrayList<CAutoFileOffice>();
+                        listOffice = new ArrayList<>();
                     }
                 });
     }
 
-    @Override
-    public void onDownLoadNow() {
-        /*
-        if (NetworkUtil.pingIpAddress(getContext())) {
-            return;
-        }
-        presenter.setDownloading(true);
-        for (int i = 0 ;i<presenter.getFileDocumentList().size();i++){
-                int nextValue = Sequence.nextValue();
-                downloadService.onProgressingDownload(this,i);
-                downloadService.intDownLoad(nextValue,presenter.getFileDocumentList().get(i).file_name,presenter.getFileDocumentList().get(i).parent_folder_name,presenter.getFileDocumentList().get(i).path_folder_name);
-        }
-        */
-    }
-
-    @Override
-    public void onUploadNow() {
-
-
-
-        Log.d(TAG,"Upload now : " + new Gson().toJson(presenter.getFileDocumentList()));
-
-
-    }
 
     @Override
     public void onDownLoadCompleted(int count) {
-        if (count== presenter.getFileDocumentList().size()-1){
-            presenter.setDownloading(false);
-        }
+        presenter.getRealmController().mInsertObject(presenter.getFileDocumentList().get(count),1);
     }
 
     @Override

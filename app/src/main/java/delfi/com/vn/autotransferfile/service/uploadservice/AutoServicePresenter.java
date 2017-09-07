@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import delfi.com.vn.autotransferfile.BuildConfig;
+import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
@@ -23,6 +24,7 @@ import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
 import delfi.com.vn.autotransferfile.ui.autodetail.AutoDetailPresenter;
+import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadView;
 import delfi.com.vn.autotransferfile.ui.user.UserView;
 import dk.delfi.core.Dependencies;
 import dk.delfi.core.common.controller.RealmController;
@@ -41,13 +43,13 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private Context context ;
     private ServerAPI serverAPI ;
     private List<CFileDocument>fileDocumentList;
-    private List<CFileDocument>fileDocumentListCache;
     private List<CFolder> listFolder ;
     private RealmController realmController ;
     private String folder_name;
     private String author = null ;
     private Storage storage ;
-    private boolean isDownloading = false;
+    private boolean isUploading = false;
+    private String file_name ;
 
     public static final String TAG = AutoServicePresenter.class.getSimpleName();
 
@@ -58,16 +60,15 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         dependencies.init();
         fileDocumentList = new ArrayList<>();
         listFolder = new ArrayList<>();
-        fileDocumentListCache = new ArrayList<>();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
         realmController = RealmController.with(this);
         realmController.getFirstItem(CUser.class,0);
-        realmController.getALLObject(CFileDocument.class,0);
         realmController.getALLObject(CFolder.class,1);
         storage = new Storage(context);
     }
 
     public void getAllFile(){
+        realmController.getALLObject(CFileDocument.class,1);
         AutoServiceView view = view();
         if (view == null) {
             return;
@@ -84,16 +85,9 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                 .subscribe(onResponse -> {
                     Log.d(TAG,"list from internet : "+ new Gson().toJson(onResponse.files));
                     Log.d(TAG,"list from local : "+ new Gson().toJson(fileDocumentList));
+                    fileDocumentList = onCompare(onResponse.files,fileDocumentList);
                     if (fileDocumentList.size()>0){
-                        fileDocumentList = onCompare(onResponse.files,fileDocumentList);
-                        Log.d(TAG,"You need to add more : " + new Gson().toJson(fileDocumentList));
                         view.onDownLoadNow();
-                    }
-                    else if (fileDocumentList.size()==0) {
-                        realmController.mInsertList(CFileDocument.class,onResponse.files,1);
-                    }
-                    else{
-                        view.onUploadNow();
                     }
                 }, throwable -> {
                     if (throwable instanceof HttpException) {
@@ -172,7 +166,10 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     @Override
     public void onShowRealmQueryItem(Object o,int code) {
-
+        AutoServiceView view = view();
+        if (o==null){
+            view.onUploadNow();
+        }
     }
 
     @Override
@@ -187,7 +184,9 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     @Override
     public void onRealmInserted(Object o,int code) {
-
+        if (code== Constant.TAG_CODE_UPLOAD && !isUploading){
+            getAllFile();
+        }
     }
 
     @Override
@@ -255,21 +254,22 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         this.listFolder = listFolder;
     }
 
-    public boolean isDownloading() {
-        return isDownloading;
+    public String getFile_name() {
+        return file_name;
     }
 
-    public void setDownloading(boolean downloading) {
-        isDownloading = downloading;
+    public void setFile_name(String file_name) {
+        this.file_name = file_name;
     }
 
-    public List<CFileDocument> getFileDocumentListCache() {
-        return fileDocumentListCache;
+    public boolean isUploading() {
+        return isUploading;
     }
 
-    public void setFileDocumentListCache(List<CFileDocument> fileDocumentListCache) {
-        this.fileDocumentListCache = fileDocumentListCache;
+    public void setUploading(boolean uploading) {
+        isUploading = uploading;
     }
+
 
 
 

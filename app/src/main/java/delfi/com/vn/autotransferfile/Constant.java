@@ -14,6 +14,8 @@ public class Constant {
 	public static final String TAG_AUTO_UPLOAD = "";
 	public static final String TAG_FOLDER_NAME = "folder_name";
 	public static final String TAG_DEVICE_ID = "device_id";
+	public static final int TAG_CODE_UPLOAD = 100;
+	public static final String TAG_FILE_UPLOAD = "FileUpload";
 
 	/*
 	*
