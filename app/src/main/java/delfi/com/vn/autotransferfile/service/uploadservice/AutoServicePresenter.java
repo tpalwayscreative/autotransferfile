@@ -23,6 +23,7 @@ import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
+import delfi.com.vn.autotransferfile.service.AutoService;
 import delfi.com.vn.autotransferfile.ui.autodetail.AutoDetailPresenter;
 import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadView;
 import delfi.com.vn.autotransferfile.ui.user.UserView;
@@ -50,6 +51,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private Storage storage ;
     private boolean isUploading = false;
     private String file_name ;
+    private List<FileObserverService> listObserver;
 
     public static final String TAG = AutoServicePresenter.class.getSimpleName();
 
@@ -60,6 +62,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         dependencies.init();
         fileDocumentList = new ArrayList<>();
         listFolder = new ArrayList<>();
+        listObserver = new ArrayList<>();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
         realmController = RealmController.with(this);
         realmController.getFirstItem(CUser.class,0);
@@ -140,10 +143,15 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
             }
             else if (list.get(0) instanceof CFolder){
                 listFolder = realmController.getRealm().copyFromRealm(list);
+                for (CFolder index : listFolder){
+                    listObserver.add(new FileObserverService(index.path_folder_name));
+                }
                 Log.d(TAG,"List Folder : "+ new Gson().toJson(listFolder));
             }
         }
     }
+
+
 
     @Override
     public String onAuthorToken() {
@@ -269,6 +277,17 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     public void setUploading(boolean uploading) {
         isUploading = uploading;
     }
+
+
+    public List<FileObserverService> getListObserver() {
+        return listObserver;
+    }
+
+    public void setListObserver(List<FileObserverService> listObserver) {
+        this.listObserver = listObserver;
+    }
+
+
 
 
 

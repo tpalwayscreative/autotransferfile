@@ -29,16 +29,17 @@ import delfi.com.vn.autotransferfile.service.downloadservice.Sequence;
 import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
 import delfi.com.vn.autotransferfile.service.uploadservice.AutoServicePresenter;
 import delfi.com.vn.autotransferfile.service.uploadservice.AutoServiceView;
+import delfi.com.vn.autotransferfile.service.uploadservice.FileObserverService;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,AutoServiceView<CFileDocument>,DownloadService.DownLoadServiceListener{
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,AutoServiceView<CFileDocument>,DownloadService.DownLoadServiceListener,FileObserverService.FileObserverServiceListener{
 
     public static final String TAG = AutoService.class.getSimpleName();
-    private Observer cameraObserver;
-    private Observer pictureObserver ;
-    private Observer downloadsObserver;
+   // private Observer cameraObserver;
+   // private Observer pictureObserver ;
+   // private Observer downloadsObserver;
     private List<CAutoFileOffice> listOffice;
     private DownloadService downloadService ;
     private AutoServicePresenter presenter;
@@ -103,8 +104,20 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         presenter = new AutoServicePresenter(this);
         presenter.bindView(this);
         listOffice = new ArrayList<>();
+        Log.d(TAG,"Start service here");
+
+        for (int i = 0 ;i < presenter.getListFolder().size();i++) {
+            if (presenter.getListFolder().get(i).isEnable){
+                presenter.getListObserver().get(i).setListener(this);
+            }
+        }
+
+
+         /*
         Observable.create(subscriber -> {
-            for (CFolder index : presenter.getListFolder()){
+            for (int i = 0 ;i < presenter.getListFolder().size();i++){
+                presenter.getListObserver().get(i).setListener(this);
+
                 if (index.isEnable){
                     if (index.folder_name.equals("Camera")){
                         cameraObserver = new Observer(index.path_folder_name);
@@ -119,18 +132,52 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         downloadsObserver.startWatching();
                     }
                 }
+
+
+
+
             }
-            Log.d(TAG,"Start service here");
+
             subscriber.onNext(null);
             subscriber.onCompleted();
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.computation())
                 .subscribe(response -> {
                 });
+
+                 */
+
     }
 
-    private class Observer extends FileObserver {
-        private String path;
+    @Override
+    public void onEvent(int event, String file) {
+        if (event == FileObserver.CLOSE_WRITE) {
+
+            if (ConnectivityReceiver.isConnected()){
+                presenter.getRealmController().getSearchObject("file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD);
+                presenter.setFile_name(file);
+            }
+            else {
+                listOffice = FileUtil.mReadJsonDataFileOffice(getContext(),Constant.LIST_FILE_OFFICE);
+                if (listOffice==null){
+                    listOffice = new ArrayList<>();
+                }
+                for (CFolder index : presenter.getListFolder()){
+                    String nameFile = index.path_folder_name+"/"+file;
+                    presenter.setFolder_name(index.folder_name);
+                    if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
+                        listOffice.add(new CAutoFileOffice(nameFile));
+                    }
+                }
+                FileUtil.mDeleteFile(getContext(),Constant.LIST_FILE_OFFICE);
+                FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
+            }
+        }
+    }
+    /*
+
+    public class Observer extends FileObserver {
+        public String path;
         public Observer(String path) {
             super(path, FileObserver.CLOSE_WRITE);
             this.path = path;
@@ -163,6 +210,8 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
     }
+
+    */
 
     @Override
     public void onDownLoadNow() {
