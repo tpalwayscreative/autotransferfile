@@ -37,9 +37,6 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     private Observer pictureObserver ;
     private Observer downloadsObserver;
     private Storage storage ;
-    private final SingleUploadBroadcastReceiver uploadReceiver =
-            new SingleUploadBroadcastReceiver();
-
 
     public AutoService() {
 
@@ -91,10 +88,7 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
     @Override
     public void onCreate() {
         super.onCreate();
-        IntentFilter intentFilter = new IntentFilter();
-        registerReceiver(uploadReceiver,intentFilter);
         storage = new Storage(getApplicationContext());
-
         Observable.create(subscriber -> {
             List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
             for (CAuToUpload index : list){
@@ -131,7 +125,7 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
 
         private String path;
         public Observer(String path) {
-            super(path, FileObserver.CREATE);
+            super(path, FileObserver.CLOSE_WRITE);
             this.path = path;
             Log.d(TAG,"Full path : "+ path);
         }
@@ -139,7 +133,7 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
         @Override
         public void onEvent(int event, String file) {
             Log.d(TAG,"Event is :"+getEventString(event));
-            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
+            if (event ==FileObserver.CLOSE_WRITE) {
                 List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
                 for (CAuToUpload index : list){
                     String nameFile = index.full_path+"/"+file;
@@ -156,8 +150,6 @@ public class AutoService extends Service  implements SingleUploadBroadcastReceiv
         try {
             ///storage/emulated/0/Pictures/Android File Upload/IMG_20170829_171720.jpg
             String uploadId = UUID.randomUUID().toString();
-            uploadReceiver.setDelegate(this);
-            uploadReceiver.setUploadID(uploadId);
             Log.d(TAG,"file upload : "+ filePath);
             Map<String,String> hash = new HashMap<>();
             hash.put("email","delfitest@gmail.com");
