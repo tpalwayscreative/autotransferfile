@@ -53,6 +53,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private String file_name ;
     private List<FileObserverService> listObserver;
 
+
     public static final String TAG = AutoServicePresenter.class.getSimpleName();
 
     public AutoServicePresenter(Context context){

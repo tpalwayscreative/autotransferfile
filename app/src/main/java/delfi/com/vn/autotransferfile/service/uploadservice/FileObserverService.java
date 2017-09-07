@@ -27,11 +27,11 @@ public class FileObserverService extends FileObserver {
 
     @Override
     public void onEvent(int i, String s) {
-        listener.onEvent(i,s);
+        listener.onEvent(i,s,path);
     }
 
     public interface FileObserverServiceListener{
-        void onEvent(int i,String file);
+        void onEvent(int i,String file,String path);
     }
 
     @Override

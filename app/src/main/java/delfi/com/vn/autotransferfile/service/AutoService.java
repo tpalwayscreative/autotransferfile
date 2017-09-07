@@ -153,7 +153,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
     @Override
-    public void onEvent(int event, String file) {
+    public void onEvent(int event, String file,String path) {
         if (event == FileObserver.CLOSE_WRITE) {
 
             if (ConnectivityReceiver.isConnected()){
