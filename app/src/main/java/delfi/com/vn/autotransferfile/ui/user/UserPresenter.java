@@ -34,13 +34,13 @@ import rx.schedulers.Schedulers;
  * Created by PC on 9/1/2017.
  */
 
-public class UserPresenter extends Presenter<UserView> implements Dependencies.DependenciesListener,RealmController.RealmControllerListener<CUser>{
+public class UserPresenter extends Presenter<UserView> implements Dependencies.DependenciesListener,RealmController.RealmControllerListener{
 
     private Activity activity;
     private ServerAPI serverAPI ;
     public static final String TAG= UserPresenter.class.getSimpleName();
     private String author = null ;
-    private RealmController instance ;
+    private RealmController realmController ;
 
     public UserPresenter(Activity activity){
         this.activity = activity;
@@ -48,15 +48,15 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
         dependencies.dependenciesListener(this);
         dependencies.init();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
-        instance = RealmController.with(this);
-        instance.getFirstItem(CUser.class);
+        realmController = RealmController.with(this);
+        realmController.getFirstItem(CUser.class,0);
     }
 
     @Override
-    public void onShowRealmObject(CUser cUser) {
-        if (cUser != null){
-                CUser cUser1  = instance.getRealm().copyFromRealm(cUser);
-                this.author = cUser1.apiKey;
+    public void onShowRealmObject(Object cUser,int code) {
+        if (cUser != null && cUser instanceof CUser){
+            CUser cUser1  = realmController.getRealm().copyFromRealm((CUser) cUser);
+            this.author = cUser1.apiKey;
         }
     }
 
@@ -86,10 +86,10 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     CUser user = new CUser();
                     user.apiKey = onResponse.access_token;
                     user.device_id = onResponse.device_id;
-                    instance.clearAll(CUser.class);
-                    instance.mInsertObject(user);
+                    realmController.clearAll(CUser.class,0);
+                    realmController.mInsertObject(user,0);
+                    view.onLoginSuccessful();
                     Log.d(TAG,"Login" + new Gson().toJson(onResponse));
-                    getListFolder();
                     view.onHideLoading();
                 }, throwable -> {
                     view.onHideLoading();
@@ -129,11 +129,11 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                 })
                 .subscribe(onResponse -> {
 
-                    instance.clearAll(CFolder.class);
-                    instance.mInsertList(CFolder.class,onResponse.folder);
+                    realmController.clearAll(CFolder.class,0);
+                    realmController.mInsertList(CFolder.class,onResponse.folder,0);
                     Log.d(TAG,"show all folder : " + new Gson().toJson(onResponse));
                     view.onHideLoading();
-                    view.onLoginSuccessful();
+
                 }, throwable -> {
                     view.onHideLoading();
                     if (throwable instanceof HttpException) {
@@ -196,48 +196,51 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
     }
 
     @Override
-    public void onShowRealmList(List<CUser> list) {
+    public void onShowRealmList(List list,int code) {
 
 
     }
 
     @Override
-    public void onShowRealmCheck(boolean b) {
+    public void onShowRealmCheck(boolean b,int code) {
 
     }
 
     @Override
-    public void onShowRealmQueryItem(CUser cUser) {
+    public void onShowRealmQueryItem(Object o,int code) {
 
     }
 
     @Override
-    public void onRealmUpdated(CUser cUser) {
+    public void onRealmUpdated(Object o,int code) {
 
     }
 
     @Override
-    public void onRealmDeleted(boolean b) {
+    public void onRealmDeleted(boolean b,int code) {
 
     }
 
     @Override
-    public void onRealmInserted(CUser cUser) {
+    public void onRealmInserted(Object cUser,int code) {
         if (cUser !=null){
             if (cUser instanceof CUser){
                 CUser cUser1 = (CUser) cUser;
-                cUser1 = instance.getRealm().copyFromRealm(cUser1);
+                cUser1 = realmController.getRealm().copyFromRealm(cUser1);
                 this.author = cUser1.apiKey;
                 Log.d(TAG,"Inserted user successfully : " + new Gson().toJson(cUser1));
             }
-
         }
     }
 
     @Override
-    public void onRealmInsertedList(List<CUser> list) {
-
-
+    public void onRealmInsertedList(List list,int code) {
+        if (list !=null && !list.isEmpty()){
+            if (list.get(0) instanceof CFolder){
+                List<CFolder> list1 = realmController.getRealm().copyFromRealm(list) ;
+                Log.d(TAG,"Show List of folder : "+ new Gson().toJson(list1));
+            }
+        }
     }
 
     @Override

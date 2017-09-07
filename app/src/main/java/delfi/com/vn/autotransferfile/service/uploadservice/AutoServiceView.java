@@ -11,4 +11,6 @@ import dk.delfi.core.common.presenter.BaseView;
 
 public interface AutoServiceView<T> extends BaseView<CFileDocument>{
     void onUpload(List<T>list);
+    void onDownLoadNow();
+    void onUploadNow();
 }

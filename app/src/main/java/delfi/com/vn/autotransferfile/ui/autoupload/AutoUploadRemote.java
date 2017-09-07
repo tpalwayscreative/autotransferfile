@@ -14,6 +14,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CFolder;
 import dk.delfi.core.common.activity.BaseActivity;
 import dk.delfi.core.ui.recycleview.DPRecyclerView;
 import dk.delfi.core.ui.recycleview.RecyclerViewAdapter;
@@ -42,12 +43,12 @@ public abstract class AutoUploadRemote  extends BaseActivity implements DPRecycl
 
     @Override
     public void onShowData(Object o, int i) {
-        CAuToUpload data = (CAuToUpload) o;
+        CFolder data = (CFolder) o;
         viewHolder.checkBox.setOnCheckedChangeListener(null);
         viewHolder.checkBox.setChecked(data.isEnable);
         viewHolder.checkBox.setOnCheckedChangeListener(this);
-        viewHolder.tvName.setText(data.name);
-        viewHolder.tvFullPath.setText(data.full_path);
+        viewHolder.tvName.setText(data.folder_name);
+        viewHolder.tvFullPath.setText(data.path_folder_name);
         viewHolder.checkBox.setChecked(data.isEnable);
     }
 
@@ -143,23 +144,33 @@ public abstract class AutoUploadRemote  extends BaseActivity implements DPRecycl
     }
 
     @Override
-    public CAuToUpload onGetObjects() {
+    public void onShowList(List<CFolder> list) {
+
+    }
+
+    @Override
+    public void onShowError(String alert) {
+
+    }
+
+    @Override
+    public void onShowListObjects(List<CFolder> list) {
+
+    }
+
+    @Override
+    public void onShowObjects(CFolder cFolder) {
+
+    }
+
+    @Override
+    public List<CFolder> onGetListObjects() {
         return null;
     }
 
     @Override
-    public List<CAuToUpload> onGetListObjects() {
+    public CFolder onGetObjects() {
         return null;
-    }
-
-    @Override
-    public void onShowListObjects(List<CAuToUpload> list) {
-
-    }
-
-    @Override
-    public void onShowList(List<CAuToUpload> list) {
-
     }
 
     @Override
@@ -175,11 +186,6 @@ public abstract class AutoUploadRemote  extends BaseActivity implements DPRecycl
     @Override
     public Context getContext() {
         return null;
-    }
-
-    @Override
-    public void onShowObjects(CAuToUpload cAuToUpload) {
-
     }
 
     @Override

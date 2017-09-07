@@ -13,18 +13,20 @@ public class CUser extends RealmObject implements Serializable{
     public String apiKey;
     public String name;
     public String email;
-    public String createdAt;
+    public String created_date;
+    public String updated_date;
     public String device_id;
 
     public CUser(){
 
     }
 
-    public CUser(String name, String email, String apiKey, String createdAt){
+    public CUser(String name, String email, String apiKey, String created_date,String updated_date){
         this.name = name ;
         this.email = email ;
         this.apiKey = apiKey ;
-        this.createdAt = createdAt;
+        this.created_date = created_date;
+        this.updated_date = updated_date;
     }
 
 

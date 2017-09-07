@@ -53,7 +53,6 @@ public class UserActivity extends BaseActivity implements UserView{
 
     }
 
-
     @Override
     public void onLoginSuccessful() {
         Navigator.moveToHome(this);

@@ -13,6 +13,7 @@ import java.util.List;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadPresenter;
 import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadRemote;
 import dk.delfi.core.common.activity.BaseActivity;
@@ -30,11 +31,10 @@ public class AutoDetailActivity extends AutoDetailRemote {
         presenter = new AutoDetailPresenter(this);
         presenter.bindView(this);
         Bundle bundle = getIntent().getExtras();
-        CAuToUpload auToUpload = (CAuToUpload) bundle.get(Constant.TAG_AUTO_UPLOAD);
+        CFolder auToUpload = (CFolder) bundle.get(Constant.TAG_AUTO_UPLOAD);
         if (auToUpload!=null){
-            setTitle(auToUpload.name);
-            Log.d(TAG,"Path of folder : "+ auToUpload.full_path);
-            presenter.getListFile(auToUpload.full_path);
+            setTitle(auToUpload.folder_name);
+            presenter.getListFile(auToUpload.path_folder_name);
         }
 
     }

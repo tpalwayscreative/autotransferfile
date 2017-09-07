@@ -92,7 +92,7 @@ public class AutoApplication extends BaseApplication implements Application.Acti
     }
 
     @Override
-    public void onRealmInsertedList(List<CFileDocument> list) {
+    public void onRealmInsertedList(List<CFileDocument> list,int code) {
 
     }
 
@@ -117,37 +117,37 @@ public class AutoApplication extends BaseApplication implements Application.Acti
     }
 
     @Override
-    public void onShowRealmObject(CFileDocument cFileDocument) {
+    public void onShowRealmObject(CFileDocument cFileDocument,int code) {
 
     }
 
     @Override
-    public void onShowRealmList(List<CFileDocument> list) {
+    public void onShowRealmList(List<CFileDocument> list,int code) {
 
     }
 
     @Override
-    public void onShowRealmCheck(boolean b) {
+    public void onShowRealmCheck(boolean b,int code) {
 
     }
 
     @Override
-    public void onShowRealmQueryItem(CFileDocument cFileDocument) {
+    public void onShowRealmQueryItem(CFileDocument cFileDocument,int code) {
 
     }
 
     @Override
-    public void onRealmUpdated(CFileDocument cFileDocument) {
+    public void onRealmUpdated(CFileDocument cFileDocument,int code) {
 
     }
 
     @Override
-    public void onRealmDeleted(boolean b) {
+    public void onRealmDeleted(boolean b,int code) {
 
     }
 
     @Override
-    public void onRealmInserted(CFileDocument cFileDocument) {
+    public void onRealmInserted(CFileDocument cFileDocument,int code) {
         CFileDocument fileDocument = realms.getRealm().copyFromRealm(cFileDocument);
         Log.d(TAG,"Inserted successfully: " + new Gson().toJson(fileDocument));
     }

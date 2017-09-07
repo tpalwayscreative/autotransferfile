@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.ui.autodetail.AutoDetailActivity;
 import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadActivity;
 import delfi.com.vn.autotransferfile.ui.home.HomeActivity;
@@ -32,7 +33,7 @@ public class Navigator {
     }
 
 
-    public static void moveToAutoDetail(Context context, CAuToUpload auto){
+    public static void moveToAutoDetail(Context context, CFolder auto){
         Intent intent = new Intent(context, AutoDetailActivity.class);
         Bundle bundle = new Bundle();
         bundle.putSerializable(Constant.TAG_AUTO_UPLOAD,(Serializable)auto);

@@ -20,6 +20,7 @@ import delfi.com.vn.autotransferfile.common.PermissionUtils;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.service.AutoService;
 import dk.delfi.core.ui.recycleview.DPRecyclerView;
 
@@ -27,6 +28,7 @@ public class AutoUploadActivity extends AutoUploadRemote {
 
     public static final String TAG = AutoUploadActivity.class.getSimpleName();
     private Intent intent ;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,39 +38,33 @@ public class AutoUploadActivity extends AutoUploadRemote {
         recyclerView.setAdapter(adapter);
         presenter = new AutoUploadPresenter(this);
         presenter.bindView(this);
-        presenter.onShowList();
+        presenter.getRealmController().getALLObject(CFolder.class,100);
         PermissionUtils.checkAndRequestPermissions(this);
         intent = new Intent(this, AutoService.class);
         startService(intent);
-
-
     }
 
     @Override
     public void onCheckedChangedCheckBox(int i, boolean b) {
         super.onCheckedChangedCheckBox(i, b);
-        presenter.getList().get(i).isEnable = b;
+        presenter.getListFolder().get(i).isEnable = b;
     }
 
     @Override
     public void onShowPosition(int i) {
         super.onShowPosition(i);
-        Navigator.moveToAutoDetail(this,presenter.getList().get(i));
+        Navigator.moveToAutoDetail(this,presenter.getListFolder().get(i));
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_SettingScanner : {
-                if (FileUtil.mDeleteFile(this, Constant.LIST_FILE)) {
-                    if (FileUtil.mCreateAndSaveFile(this, Constant.LIST_FILE, new Gson().toJson(presenter.getList()))) {
-                        Toast.makeText(this, "Saved successfully", Toast.LENGTH_SHORT).show();
-                        stopService(intent);
-                        startService(intent);
-                    } else {
-                        Toast.makeText(this, "Saved failed", Toast.LENGTH_SHORT).show();
-                    }
-                }
+                    presenter.getRealmController().clearAll(CFolder.class,0);
+                    presenter.getRealmController().mInsertList(CFolder.class,presenter.getListFolder(),0);
+                    Toast.makeText(this, "Saved successfully", Toast.LENGTH_SHORT).show();
+                    stopService(intent);
+                    startService(intent);
                 return true;
             }
             case R.id.action_Logout :{
@@ -92,8 +88,10 @@ public class AutoUploadActivity extends AutoUploadRemote {
         super.onDestroy();
     }
 
+
     @Override
-    public void onShowList(List<CAuToUpload> list) {
+    public void onShowList(List<CFolder> list) {
+        super.onShowList(list);
         adapter.setDataSource(new ArrayList(list));
     }
 

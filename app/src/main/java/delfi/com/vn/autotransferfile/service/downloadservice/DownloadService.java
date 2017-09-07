@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.service.AutoApplication;
 import delfi.com.vn.autotransferfile.service.AutoService;
@@ -45,9 +47,11 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
     }
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManager notificationManager;
+    private DownLoadServiceListener listener;
+    private int count ;
 
 
-    public void intDownLoad(int idResponse,String fileName ){
+    public void intDownLoad(int idResponse,String fileName,String folderName,String path_save_to){
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_download)
@@ -55,7 +59,12 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
                 .setContentText("Downloading File")
                 .setAutoCancel(true);
         notificationManager.notify(idResponse, notificationBuilder.build());
-        downloadZipFileRx(idResponse,fileName);
+        downloadZipFileRx(idResponse,fileName,folderName,path_save_to);
+    }
+
+    public void onProgressingDownload(DownLoadServiceListener downLoadServiceListener,int count){
+        this.listener  = downLoadServiceListener;
+        this.count = count;
     }
 
     @Override
@@ -76,26 +85,26 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         onDownloadComplete(idResponse);
     }
 
-    public void downloadZipFileRx(int idResponse,String fileName) {
+    public void downloadZipFileRx(int idResponse,String fileName,String folderName,String path_save_to) {
         // https://github.com/yourusername/awesomegames/archive/master.zip
-        RetrofitInterface downloadService = createService(RetrofitInterface.class, "http://tpalwayscreative.esy.es/",idResponse);
-        downloadService.downloadFileByUrlRx("FileUpload/uploads/"+fileName)
-                .flatMap(processResponse(idResponse,fileName))
+        RetrofitInterface downloadService = createService(RetrofitInterface.class, BuildConfig.BASE_URL_API,idResponse);
+        downloadService.downloadFileByUrlRx("/api/file/GetImage?file_name="+fileName+"&folder_name="+folderName)
+                .flatMap(processResponse(idResponse,fileName,path_save_to))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(handleResult());
     }
 
-    private Func1<Response<ResponseBody>, Observable<File>> processResponse(int idResponse,String fileName) {
+    private Func1<Response<ResponseBody>, Observable<File>> processResponse(int idResponse,String fileName,String path_save_to) {
         return new Func1<Response<ResponseBody>, Observable<File>>() {
             @Override
             public Observable<File> call(Response<ResponseBody> responseBodyResponse) {
-                return saveToDiskRx(responseBodyResponse,idResponse,fileName);
+                return saveToDiskRx(responseBodyResponse,idResponse,fileName,path_save_to);
             }
         };
     }
 
-    private Observable<File> saveToDiskRx(final Response<ResponseBody> response,int idResponse,String fileName) {
+    private Observable<File> saveToDiskRx(final Response<ResponseBody> response,int idResponse,String fileName,String path_save_to) {
         return Observable.create(new Observable.OnSubscribe<File>() {
             @Override
             public void call(Subscriber<? super File> subscriber) {
@@ -103,7 +112,8 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
                     String header = response.headers().get("Content-Disposition");
                    // String filename = header.replace("attachment; filename=", "");
                     //new File("/data/data/" + activity.getPackageName() + "/games").mkdir();
-                    File destinationFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),idResponse+"_"+fileName);
+                    //File destinationFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),fileName);
+                    File destinationFile = new File(path_save_to,fileName);
                     //File destinationFile = new File("/data/data/" + activity.getPackageName() + "/games/" + filename);
                     BufferedSink bufferedSink = Okio.buffer(Okio.sink(destinationFile));
                     bufferedSink.writeAll(response.body().source());
@@ -137,7 +147,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
             }
         };
     }
-    
+
 
     public <T> T createService(Class<T> serviceClass, String baseUrl,int idResponse) {
         Retrofit retrofit = new Retrofit.Builder()
@@ -168,9 +178,15 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 
     private void onDownloadComplete(int idResponse){
         //notificationManager.cancel(0);
+        listener.onDownLoadCompleted(count);
         notificationBuilder.setProgress(0,0,false);
         notificationBuilder.setContentText("File Downloaded");
         notificationManager.notify(idResponse, notificationBuilder.build());
+
+    }
+
+    public interface DownLoadServiceListener {
+        void onDownLoadCompleted(int count);
     }
 
 

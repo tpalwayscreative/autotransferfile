@@ -20,11 +20,11 @@ public class SplashScreen extends BaseActivity implements RealmController.RealmC
         setContentView(R.layout.activity_splash_screen);
         handler = new Handler();
         instance = RealmController.with(this);
-        instance.getFirstItem(CUser.class);
+        instance.getFirstItem(CUser.class,0);
     }
 
     @Override
-    public void onShowRealmObject(CUser cUser) {
+    public void onShowRealmObject(CUser cUser,int code) {
         Log.d(TAG,"ShowRealmObject : "+cUser);
         handler.postDelayed(new Runnable() {
             @Override
@@ -41,37 +41,37 @@ public class SplashScreen extends BaseActivity implements RealmController.RealmC
     }
 
     @Override
-    public void onShowRealmList(List<CUser> list) {
+    public void onShowRealmList(List<CUser> list,int code) {
 
     }
 
     @Override
-    public void onShowRealmCheck(boolean b) {
+    public void onShowRealmCheck(boolean b,int code) {
 
     }
 
     @Override
-    public void onShowRealmQueryItem(CUser cUser) {
+    public void onShowRealmQueryItem(CUser cUser,int code) {
 
     }
 
     @Override
-    public void onRealmInsertedList(List<CUser> list) {
+    public void onRealmInsertedList(List<CUser> list,int code) {
 
     }
 
     @Override
-    public void onRealmUpdated(CUser cUser) {
+    public void onRealmUpdated(CUser cUser,int code) {
 
     }
 
     @Override
-    public void onRealmDeleted(boolean b) {
+    public void onRealmDeleted(boolean b,int code) {
 
     }
 
     @Override
-    public void onRealmInserted(CUser cUser) {
+    public void onRealmInserted(CUser cUser,int code) {
 
     }
 

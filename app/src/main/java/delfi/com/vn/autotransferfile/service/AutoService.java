@@ -7,16 +7,22 @@ import android.os.IBinder;
 import android.util.Log;
 import com.google.gson.Gson;
 import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.ServerResponse;
+import net.gotev.uploadservice.UploadInfo;
 import net.gotev.uploadservice.UploadNotificationConfig;
+import net.gotev.uploadservice.UploadStatusDelegate;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
+import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
+import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
 import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import delfi.com.vn.autotransferfile.service.downloadservice.Sequence;
@@ -27,13 +33,12 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,AutoServiceView<CFileDocument>{
+public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,AutoServiceView<CFileDocument>,DownloadService.DownLoadServiceListener{
 
     public static final String TAG = AutoService.class.getSimpleName();
     private Observer cameraObserver;
     private Observer pictureObserver ;
     private Observer downloadsObserver;
-    private RecursiveFileObserver recursiveFileObserver;
     private List<CAutoFileOffice> listOffice;
     private DownloadService downloadService ;
     private AutoServicePresenter presenter;
@@ -97,23 +102,22 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         downloadService = new DownloadService(this);
         presenter = new AutoServicePresenter(this);
         presenter.bindView(this);
-        presenter.initRealm();
         presenter.getAllFile();
         listOffice = new ArrayList<>();
         Observable.create(subscriber -> {
-            List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
-            for (CAuToUpload index : list){
+
+            for (CFolder index : presenter.getListFolder()){
                 if (index.isEnable){
-                    if (index.name.equals("Camera")){
-                        cameraObserver = new Observer(index.full_path);
+                    if (index.folder_name.equals("Camera")){
+                        cameraObserver = new Observer(index.path_folder_name);
                         cameraObserver.startWatching();
                     }
-                    else if(index.name.equals("Picture")){
-                        pictureObserver = new Observer(index.full_path);
+                    else if(index.folder_name.equals("Picture")){
+                        pictureObserver = new Observer(index.path_folder_name);
                         pictureObserver.startWatching();
                     }
-                    else if(index.name.equals("Downloads")){
-                        downloadsObserver = new Observer(index.full_path);
+                    else if(index.folder_name.equals("Downloads")){
+                        downloadsObserver = new Observer(index.path_folder_name);
                         downloadsObserver.startWatching();
                     }
                 }
@@ -137,21 +141,23 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
         @Override
         public void onEvent(int event, String file) {
-            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event ==FileObserver.CREATE) {
-                List<CAuToUpload> list = FileUtil.mReadJsonDataSettingButton(getApplicationContext(), Constant.LIST_FILE);
-                for (CAuToUpload index : list){
-                    String nameFile = index.full_path+"/"+file;
-                    presenter.setFolder_name(index.name);
-                    if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
-                        if (ConnectivityReceiver.isConnected()){
-                            Log.d(TAG,"Event is :"+nameFile);
-                            uploadMultipart(getApplicationContext(),nameFile);
-                        }
-                        else{
-                            listOffice.add(new CAutoFileOffice(nameFile));
+            if (event == FileObserver.ACCESS || event == FileObserver.CLOSE_NOWRITE || event == FileObserver.CREATE) {
+                if (!presenter.isDownloading()){
+                    for (CFolder index : presenter.getListFolder()){
+                        String nameFile = index.path_folder_name+"/"+file;
+                        presenter.setFolder_name(index.folder_name);
+                        if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
+                            if (ConnectivityReceiver.isConnected()){
+                                Log.d(TAG,"Event is :"+nameFile);
+                                uploadMultipart(getApplicationContext(),nameFile);
+                            }
+                            else{
+                                listOffice.add(new CAutoFileOffice(nameFile));
+                            }
                         }
                     }
                 }
+
                 FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
                 Log.d(TAG, "event: " + getEventString((Integer) event) + " file: [" + file + "]");
             }
@@ -169,6 +175,35 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     .addParameter(Constant.TAG_DEVICE_ID,presenter.getDevice_id())
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setMaxRetries(2)
+                    .setDelegate(new UploadStatusDelegate() {
+                        @Override
+                        public void onProgress(Context context, UploadInfo uploadInfo) {
+
+                        }
+
+                        @Override
+                        public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
+
+                        }
+
+                        @Override
+                        public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
+                            try{
+                                CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
+                                presenter.getRealmController().mInsertObject(fileDocument,0);
+                                Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                           // presenter.getRealmController().mInsertObject(fileDocument,0);
+                        }
+
+                        @Override
+                        public void onCancelled(Context context, UploadInfo uploadInfo) {
+
+                        }
+                    })
                     .startUpload();
         } catch (Exception exc) {
             Log.e("AndroidUploadService", exc.getMessage(), exc);
@@ -207,7 +242,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 for (CFileDocument index : presenter.getFileDocumentList()){
                     if (isConnected){
                         int nextValue = Sequence.nextValue();
-                        downloadService.intDownLoad(nextValue,index.file_name);
+                        downloadService.intDownLoad(nextValue,index.file_name,index.parent_folder_name,index.path_folder_name);
                     }
                 }
 
@@ -237,6 +272,37 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 });
     }
 
+    @Override
+    public void onDownLoadNow() {
+        /*
+        if (NetworkUtil.pingIpAddress(getContext())) {
+            return;
+        }
+        presenter.setDownloading(true);
+        for (int i = 0 ;i<presenter.getFileDocumentList().size();i++){
+                int nextValue = Sequence.nextValue();
+                downloadService.onProgressingDownload(this,i);
+                downloadService.intDownLoad(nextValue,presenter.getFileDocumentList().get(i).file_name,presenter.getFileDocumentList().get(i).parent_folder_name,presenter.getFileDocumentList().get(i).path_folder_name);
+        }
+        */
+    }
+
+    @Override
+    public void onUploadNow() {
+
+
+
+        Log.d(TAG,"Upload now : " + new Gson().toJson(presenter.getFileDocumentList()));
+
+
+    }
+
+    @Override
+    public void onDownLoadCompleted(int count) {
+        if (count== presenter.getFileDocumentList().size()-1){
+            presenter.setDownloading(false);
+        }
+    }
 
     @Override
     public void onUpload(List<CFileDocument> list) {
