@@ -108,7 +108,10 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
         for (int i = 0 ;i < presenter.getListFolder().size();i++) {
             if (presenter.getListFolder().get(i).isEnable){
-                presenter.getListObserver().get(i).setListener(this);
+                presenter.getListObserver().get(i).setListener(this,true);
+            }
+            else{
+                presenter.getListObserver().get(i).setListener(this,false);
             }
         }
 
@@ -174,6 +177,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
     }
+
     /*
 
     public class Observer extends FileObserver {

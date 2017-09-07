@@ -15,8 +15,13 @@ public class FileObserverService extends FileObserver {
        this.path = path;
    }
 
-   public void setListener(FileObserverServiceListener fileObserverServiceListener){
-       startWatching();
+   public void setListener(FileObserverServiceListener fileObserverServiceListener,boolean isStart){
+       if (isStart){
+           startWatching();
+       }
+       else {
+           stopWatching();
+       }
        this.listener = fileObserverServiceListener;
    }
 
