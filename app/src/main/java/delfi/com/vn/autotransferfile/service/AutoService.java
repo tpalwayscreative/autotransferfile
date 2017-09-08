@@ -105,7 +105,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         presenter.bindView(this);
         listOffice = new ArrayList<>();
         Log.d(TAG,"Start service here");
-
         for (int i = 0 ;i < presenter.getListFolder().size();i++) {
             if (presenter.getListFolder().get(i).isEnable){
                 presenter.getListObserver().get(i).setListener(this,true);
@@ -155,7 +154,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     @Override
     public void onEvent(int event, String file,String path) {
         if (event == FileObserver.CLOSE_WRITE) {
-
+            Log.d(TAG,"Show path of path : "+ path);
             if (ConnectivityReceiver.isConnected()){
                 presenter.getRealmController().getSearchObject("file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD);
                 presenter.setFile_name(file);
@@ -277,7 +276,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                                 e.printStackTrace();
                             }
                         }
-
                         @Override
                         public void onCancelled(Context context, UploadInfo uploadInfo) {
 
@@ -288,7 +286,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
     }
-
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {

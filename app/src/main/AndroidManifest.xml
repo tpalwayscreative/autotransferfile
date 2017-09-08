@@ -28,8 +28,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.home.HomeActivity" />
-        <activity android:name=".ui.upload.UploadActivity" />
+        <activity android:name=".ui.home.HomeActivity"
+            android:screenOrientation="portrait"
+            />
+        <activity android:name=".ui.upload.UploadActivity"
+            android:screenOrientation="portrait"
+            />
 
         <service
             android:name=".service.AutoService"
@@ -82,7 +86,9 @@
         <!-- </intent-filter> -->
         <!-- </service> -->
 
-        <activity android:name=".ui.autoupload.AutoUploadActivity" />
+        <activity android:name=".ui.autoupload.AutoUploadActivity"
+            android:screenOrientation="portrait"
+            />
 
         <receiver
             android:name=".service.uploadservice.DownLoadBroadCastReceiver"
@@ -99,6 +105,7 @@
 
         <activity
             android:name=".ui.user.UserActivity"
+            android:label="@string/tv_Login_Screen"
             android:screenOrientation="portrait" />
         <activity android:name=".ui.setting.SettingsActivity" />
         <activity android:name=".ui.autodetail.AutoDetailActivity"></activity>
