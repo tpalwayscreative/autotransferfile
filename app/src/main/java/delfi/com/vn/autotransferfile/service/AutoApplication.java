@@ -39,11 +39,10 @@ public class AutoApplication extends BaseApplication implements Application.Acti
     @Override
     public void onCreate() {
         super.onCreate();
-        mInstance = this;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
         UploadService.HTTP_STACK = new OkHttpStack();
+        mInstance = this;
         realms = RealmController.with(this);
-
         if (!FileUtil.mCheckFileExisting(getApplicationContext(),Constant.LIST_FILE)){
             initData();
             FileUtil.mCreateAndSaveFile(this,Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));

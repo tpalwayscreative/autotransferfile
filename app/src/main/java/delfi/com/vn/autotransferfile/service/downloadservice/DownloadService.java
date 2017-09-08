@@ -77,6 +77,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 
     }
 
+
     @Override
     public void onAttachmentDownloadedSuccess(int idResponse) {
         Log.d(TAG, "idResponse : "+ idResponse);
@@ -169,9 +170,9 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
             }
         }).build();
         // You might want to increase the timeout
-        httpClientBuilder.newBuilder().connectTimeout(30, TimeUnit.SECONDS);
-        httpClientBuilder.newBuilder().writeTimeout(30, TimeUnit.SECONDS);
-        httpClientBuilder.newBuilder().readTimeout(30, TimeUnit.MINUTES);
+        httpClientBuilder.newBuilder().connectTimeout(20, TimeUnit.MINUTES);
+        httpClientBuilder.newBuilder().writeTimeout(20, TimeUnit.MINUTES);
+        httpClientBuilder.newBuilder().readTimeout(20, TimeUnit.MINUTES);
         return httpClientBuilder;
     }
 

@@ -2,22 +2,32 @@ package delfi.com.vn.autotransferfile.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
 import com.google.gson.Gson;
+
+import net.gotev.uploadservice.BuildConfig;
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.ServerResponse;
 import net.gotev.uploadservice.UploadInfo;
 import net.gotev.uploadservice.UploadNotificationConfig;
+import net.gotev.uploadservice.UploadService;
+import net.gotev.uploadservice.UploadServiceBroadcastReceiver;
+import net.gotev.uploadservice.UploadServiceSingleBroadcastReceiver;
 import net.gotev.uploadservice.UploadStatusDelegate;
+import net.gotev.uploadservice.okhttp.OkHttpStack;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
@@ -32,6 +42,7 @@ import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
 import delfi.com.vn.autotransferfile.service.uploadservice.AutoServicePresenter;
 import delfi.com.vn.autotransferfile.service.uploadservice.AutoServiceView;
 import delfi.com.vn.autotransferfile.service.uploadservice.FileObserverService;
+import delfi.com.vn.autotransferfile.service.uploadservice.SingleUploadBroadcastReceiver;
 import dk.delfi.core.common.controller.RealmController;
 import io.realm.Realm;
 import rx.Observable;
@@ -61,12 +72,14 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Let it continue running until it is stopped.
+       Log.d(TAG,"on Start Command");
         return START_STICKY ;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(broadcastReceiver);
     }
 
     private static String getEventString(int event) {
@@ -107,6 +120,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         downloadService = new DownloadService(this);
         presenter = new AutoServicePresenter(this);
         presenter.bindView(this);
+        broadcastReceiver.register(this);
         listOffice = new ArrayList<>();
         Log.d(TAG,"Start service here");
         for (int i = 0 ;i < presenter.getListFolder().size();i++) {
@@ -137,10 +151,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         downloadsObserver.startWatching();
                     }
                 }
-
-
-
-
             }
 
             subscriber.onNext(null);
@@ -157,6 +167,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     @Override
     public void onEvent(int event, String file, String path,String folder_name) {
         Log.d(TAG,"show event : " +getEventString(event));
+
         if (event == FileObserver.CLOSE_WRITE || event == FileObserver.MOVED_TO) {
             Log.d(TAG,"Show path of path : "+ path);
             Log.d(TAG,"Show name : " + file);
@@ -166,6 +177,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 hashMap.put(Constant.TAG_FILE_NAME,file);
                 hashMap.put(Constant.TAG_FOLDER_NAME,folder_name);
                 presenter.getRealmController().getSearchObject(getApplicationContext(),"file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD,hashMap);
+
             }
             else {
                 listOffice = FileUtil.mReadJsonDataFileOffice(getContext(),Constant.LIST_FILE_OFFICE);
@@ -179,6 +191,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 FileUtil.mDeleteFile(getContext(),Constant.LIST_FILE_OFFICE);
                 FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
                 presenter.onShowDataOffice(listOffice);
+
             }
         }
     }
@@ -256,10 +269,14 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
     }
 
+    public void onService(){
+        presenter.getAllFile();
+    }
+
     public void uploadMultipart(final Context context, String filePath) {
         try {
-            presenter.setUploading(true);
             Log.d(TAG,"file upload : "+ filePath);
+            Log.d(TAG,"Folder : " + presenter.getFile_name() + " Device_id : "+ presenter.getDevice_id());
             new MultipartUploadRequest(context, Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
                     .addFileToUpload(filePath,Constant.TAG_FILE_UPLOAD)
@@ -267,40 +284,40 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     .addParameter(Constant.TAG_DEVICE_ID,presenter.getDevice_id())
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setMaxRetries(2)
-                    .setDelegate(new UploadStatusDelegate() {
-                        @Override
-                        public void onProgress(Context context, UploadInfo uploadInfo) {
-                            Log.d(TAG,"Show onProgress");
-                        }
-
-                        @Override
-                        public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
-                            Log.d(TAG,"Show onError");
-                        }
-
-                        @Override
-                        public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
-                            try{
-                                Log.d(TAG,"Show onCompleted");
-                                CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
-                                presenter.setUploading(false);
-                                Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
-                                presenter.getRealmController().mInsertObject(fileDocument,Constant.TAG_CODE_UPLOAD);
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                        }
-                        @Override
-                        public void onCancelled(Context context, UploadInfo uploadInfo) {
-                            Log.d(TAG,"Show onCancelled");
-                        }
-                    })
                     .startUpload();
         } catch (Exception exc) {
             Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
     }
+
+    private UploadServiceBroadcastReceiver broadcastReceiver = new UploadServiceBroadcastReceiver() {
+        @Override
+        public void onProgress(Context context, UploadInfo uploadInfo) {
+            // your implementation
+        }
+
+        @Override
+        public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
+            // your implementation
+        }
+
+        @Override
+        public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
+            Log.d(TAG,"Show onCompleted");
+            CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
+            presenter.setUploading(false);
+            Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
+            presenter.getRealmController().mInsertObject(fileDocument,Constant.TAG_CODE_UPLOAD);
+        }
+
+        @Override
+        public void onCancelled(Context context, UploadInfo uploadInfo) {
+            // your implementation
+        }
+    };
+
+
+
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {

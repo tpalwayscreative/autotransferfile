@@ -13,10 +13,9 @@
         app:showAsAction="withText"
         />
     <item
-        android:id="@+id/action_Logouts"
-        android:title=""
+        android:id="@+id/action_syn_data"
+        android:title="Syn Data from server"
         app:showAsAction="withText"
         />
-
 
 </menu>
