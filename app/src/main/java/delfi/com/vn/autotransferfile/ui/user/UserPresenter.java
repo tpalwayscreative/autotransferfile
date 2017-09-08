@@ -1,5 +1,6 @@
 package delfi.com.vn.autotransferfile.ui.user;
 import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -218,6 +219,11 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
 
     @Override
     public void onRealmDeleted(boolean b,int code) {
+
+    }
+
+    @Override
+    public void onShowRealmQueryItem(Context context, Object o, HashMap hashMap, int i) {
 
     }
 

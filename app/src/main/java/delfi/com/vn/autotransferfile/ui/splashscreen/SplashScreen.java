@@ -1,7 +1,10 @@
 package delfi.com.vn.autotransferfile.ui.splashscreen;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+
+import java.util.HashMap;
 import java.util.List;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.utils.Navigator;
@@ -72,6 +75,12 @@ public class SplashScreen extends BaseActivity implements RealmController.RealmC
 
     @Override
     public void onRealmInserted(CUser cUser,int code) {
+
+    }
+
+
+    @Override
+    public void onShowRealmQueryItem(Context context, CUser cUser, HashMap<String, String> hashMap, int i) {
 
     }
 

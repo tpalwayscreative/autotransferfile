@@ -20,6 +20,7 @@ import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
+import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
@@ -51,9 +52,10 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private Storage storage ;
     private boolean isUploading = false;
     private String file_name ;
+
+
+    private String path_file_name ;
     private List<FileObserverService> listObserver;
-
-
     public static final String TAG = AutoServicePresenter.class.getSimpleName();
 
     public AutoServicePresenter(Context context){
@@ -72,7 +74,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     }
 
     public void getAllFile(){
-        realmController.getALLObject(CFileDocument.class,1);
+
         AutoServiceView view = view();
         if (view == null) {
             return;
@@ -84,12 +86,14 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
+                    realmController.getALLObject(CFileDocument.class,1);
                     Log.d(TAG,"action 0");
                 })
                 .subscribe(onResponse -> {
                     Log.d(TAG,"list from internet : "+ new Gson().toJson(onResponse.files));
                     Log.d(TAG,"list from local : "+ new Gson().toJson(fileDocumentList));
                     fileDocumentList = onCompare(onResponse.files,fileDocumentList);
+                    Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
                     if (fileDocumentList.size()>0){
                         view.onDownLoadNow();
                     }
@@ -104,7 +108,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                             e.printStackTrace();
                         }
                     }else {
-                        Log.d(TAG,"action 2");
+                        Log.d(TAG,context.getString(R.string.tv_issue));
                     }
                 }));
     }
@@ -124,6 +128,8 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         }
         return  list;
     }
+
+
 
     @Override
     public void onShowRealmObject(Object object,int code) {
@@ -145,14 +151,12 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
             else if (list.get(0) instanceof CFolder){
                 listFolder = realmController.getRealm().copyFromRealm(list);
                 for (CFolder index : listFolder){
-                    listObserver.add(new FileObserverService(index.path_folder_name));
+                    listObserver.add(new FileObserverService(index.path_folder_name,index.folder_name));
                 }
                 Log.d(TAG,"List Folder : "+ new Gson().toJson(listFolder));
             }
         }
     }
-
-
 
     @Override
     public String onAuthorToken() {
@@ -175,15 +179,28 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     @Override
     public void onShowRealmQueryItem(Object o,int code) {
+
+    }
+
+
+
+    @Override
+    public void onShowRealmQueryItem(Context context, Object o, HashMap hashMap, int i) {
         AutoServiceView view = view();
         if (o==null){
-            view.onUploadNow();
+            view.onUploadNow(context,hashMap);
+            Log.d(TAG,"Query item here work here");
         }
     }
 
     @Override
     public void onRealmUpdated(Object o,int code) {
 
+    }
+
+    public void onShowDataOffice(List<CAutoFileOffice>list){
+        AutoServiceView view = view();
+        view.onDataOffice(list);
     }
 
     @Override
@@ -194,6 +211,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     @Override
     public void onRealmInserted(Object o,int code) {
         if (code== Constant.TAG_CODE_UPLOAD && !isUploading){
+            Log.d(TAG,"show finish here");
             getAllFile();
         }
     }
@@ -259,6 +277,8 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         return listFolder;
     }
 
+
+
     public void setListFolder(List<CFolder> listFolder) {
         this.listFolder = listFolder;
     }
@@ -287,6 +307,15 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     public void setListObserver(List<FileObserverService> listObserver) {
         this.listObserver = listObserver;
     }
+
+    public String getPath_file_name() {
+        return path_file_name;
+    }
+
+    public void setPath_file_name(String path_file_name) {
+        this.path_file_name = path_file_name;
+    }
+
 
 
 

@@ -1,5 +1,6 @@
 package delfi.com.vn.autotransferfile.ui.autoupload;
 import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
@@ -11,6 +12,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import delfi.com.vn.autotransferfile.BuildConfig;
@@ -167,6 +169,11 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
 
     @Override
     public void onRealmInsertedList(List list, int i) {
+
+    }
+
+    @Override
+    public void onShowRealmQueryItem(Context context, Object o, HashMap hashMap, int i) {
 
     }
 

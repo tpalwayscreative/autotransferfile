@@ -27,7 +27,7 @@ android {
             initWith(buildTypes.debug)
             applicationIdSuffix ".product"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            buildConfigField "String", "BASE_URL_API", "\"http://tpalwayscreative.esy.es\""
+            buildConfigField "String", "BASE_URL_API", "\"http://apidelfi.somee.com\""
         }
 
     }
@@ -83,10 +83,9 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.snatik:storage:2.1.0'
     compile 'com.google.code.gson:gson:2.8.1'
-    compile 'com.github.delficode:delfiandroidcore:7.0.7'
+    compile 'com.github.delficode:delfiandroidcore:8.0.6'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'commons-collections:commons-collections:3.2.1'
-
 
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.7.0'

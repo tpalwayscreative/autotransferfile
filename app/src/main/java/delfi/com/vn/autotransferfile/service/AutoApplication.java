@@ -1,6 +1,7 @@
 package delfi.com.vn.autotransferfile.service;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,6 +14,7 @@ import net.gotev.uploadservice.BuildConfig;
 import net.gotev.uploadservice.UploadService;
 import net.gotev.uploadservice.okhttp.OkHttpStack;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.PermissionUtils;
@@ -93,6 +95,12 @@ public class AutoApplication extends BaseApplication implements Application.Acti
 
     @Override
     public void onRealmInsertedList(List<CFileDocument> list,int code) {
+
+    }
+
+
+    @Override
+    public void onShowRealmQueryItem(Context context, CFileDocument cFileDocument, HashMap<String, String> hashMap, int i) {
 
     }
 

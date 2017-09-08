@@ -48,8 +48,6 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManager notificationManager;
     private DownLoadServiceListener listener;
-    private int count ;
-
 
     public void intDownLoad(int idResponse,String fileName,String folderName,String path_save_to){
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -62,9 +60,8 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         downloadZipFileRx(idResponse,fileName,folderName,path_save_to);
     }
 
-    public void onProgressingDownload(DownLoadServiceListener downLoadServiceListener,int count){
+    public void onProgressingDownload(DownLoadServiceListener downLoadServiceListener){
         this.listener  = downLoadServiceListener;
-        this.count = count;
     }
 
     @Override
@@ -82,12 +79,15 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 
     @Override
     public void onAttachmentDownloadedSuccess(int idResponse) {
+        Log.d(TAG, "idResponse : "+ idResponse);
+        listener.onDownLoadCompleted(idResponse);
         onDownloadComplete(idResponse);
     }
 
     public void downloadZipFileRx(int idResponse,String fileName,String folderName,String path_save_to) {
         // https://github.com/yourusername/awesomegames/archive/master.zip
         RetrofitInterface downloadService = createService(RetrofitInterface.class, BuildConfig.BASE_URL_API,idResponse);
+        Log.d(TAG,"show path : "+ "/api/file/GetImage?file_name="+fileName+"&folder_name="+folderName);
         downloadService.downloadFileByUrlRx("/api/file/GetImage?file_name="+fileName+"&folder_name="+folderName)
                 .flatMap(processResponse(idResponse,fileName,path_save_to))
                 .subscribeOn(Schedulers.io())
@@ -132,7 +132,6 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
         return new Observer<File>() {
             @Override
             public void onCompleted() {
-                Log.d(TAG, "onCompleted");
                 //onDownloadComplete(idResponse);
                 //onDownloadComplete();
             }
@@ -178,11 +177,9 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 
     private void onDownloadComplete(int idResponse){
         //notificationManager.cancel(0);
-        listener.onDownLoadCompleted(count);
         notificationBuilder.setProgress(0,0,false);
         notificationBuilder.setContentText("File Downloaded");
         notificationManager.notify(idResponse, notificationBuilder.build());
-
     }
 
     public interface DownLoadServiceListener {

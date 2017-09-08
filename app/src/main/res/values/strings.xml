@@ -225,5 +225,6 @@
     <string name="tvCheckNetwork">Please check Internet connection</string>
     <string name="tvInputGroupName">Input group name</string>
     <string name="tv_Login_Screen">Login</string>
+    <string name="tv_issue">Some issues you need to check now</string>
 
 </resources>

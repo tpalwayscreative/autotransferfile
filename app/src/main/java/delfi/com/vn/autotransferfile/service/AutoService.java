@@ -2,6 +2,7 @@ package delfi.com.vn.autotransferfile.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
@@ -14,6 +15,7 @@ import net.gotev.uploadservice.UploadStatusDelegate;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import delfi.com.vn.autotransferfile.Constant;
@@ -30,6 +32,8 @@ import delfi.com.vn.autotransferfile.service.fileobserver.RecursiveFileObserver;
 import delfi.com.vn.autotransferfile.service.uploadservice.AutoServicePresenter;
 import delfi.com.vn.autotransferfile.service.uploadservice.AutoServiceView;
 import delfi.com.vn.autotransferfile.service.uploadservice.FileObserverService;
+import dk.delfi.core.common.controller.RealmController;
+import io.realm.Realm;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -114,7 +118,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
 
-
          /*
         Observable.create(subscriber -> {
             for (int i = 0 ;i < presenter.getListFolder().size();i++){
@@ -152,31 +155,38 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     }
 
     @Override
-    public void onEvent(int event, String file,String path) {
-        if (event == FileObserver.CLOSE_WRITE) {
+    public void onEvent(int event, String file, String path,String folder_name) {
+        Log.d(TAG,"show event : " +getEventString(event));
+        if (event == FileObserver.CLOSE_WRITE || event == FileObserver.MOVED_TO) {
             Log.d(TAG,"Show path of path : "+ path);
+            Log.d(TAG,"Show name : " + file);
             if (ConnectivityReceiver.isConnected()){
-                presenter.getRealmController().getSearchObject("file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD);
-                presenter.setFile_name(file);
+                HashMap<String,String>hashMap = new HashMap<>();
+                hashMap.put(Constant.TAG_PATH_FOLDER_NAME,path);
+                hashMap.put(Constant.TAG_FILE_NAME,file);
+                hashMap.put(Constant.TAG_FOLDER_NAME,folder_name);
+                presenter.getRealmController().getSearchObject(getApplicationContext(),"file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD,hashMap);
             }
             else {
                 listOffice = FileUtil.mReadJsonDataFileOffice(getContext(),Constant.LIST_FILE_OFFICE);
                 if (listOffice==null){
                     listOffice = new ArrayList<>();
                 }
-                for (CFolder index : presenter.getListFolder()){
-                    String nameFile = index.path_folder_name+"/"+file;
-                    presenter.setFolder_name(index.folder_name);
-                    if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
-                        listOffice.add(new CAutoFileOffice(nameFile));
-                    }
+                String nameFile = path+"/"+file;
+                if (presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
+                    listOffice.add(new CAutoFileOffice(nameFile,folder_name));
                 }
                 FileUtil.mDeleteFile(getContext(),Constant.LIST_FILE_OFFICE);
                 FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
+                presenter.onShowDataOffice(listOffice);
             }
         }
     }
 
+    @Override
+    public void onDataOffice(List<CAutoFileOffice> list) {
+        Log.d(TAG,"List office : "+ new Gson().toJson(list));
+    }
     /*
 
     public class Observer extends FileObserver {
@@ -222,23 +232,27 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             return;
         }
         for (int i = 0 ;i<presenter.getFileDocumentList().size();i++){
-                int nextValue = Sequence.nextValue();
-                downloadService.onProgressingDownload(this,i);
-                downloadService.intDownLoad(nextValue,presenter.getFileDocumentList().get(i).file_name,presenter.getFileDocumentList().get(i).parent_folder_name,presenter.getFileDocumentList().get(i).path_folder_name);
+                downloadService.onProgressingDownload(this);
+                downloadService.intDownLoad(i,presenter.getFileDocumentList().get(i).file_name,presenter.getFileDocumentList().get(i).parent_folder_name,presenter.getFileDocumentList().get(i).path_folder_name);
         }
     }
 
     @Override
-    public void onUploadNow() {
-        for (CFolder index : presenter.getListFolder()){
-                String nameFile = index.path_folder_name+"/"+presenter.getFile_name();
-                presenter.setFolder_name(index.folder_name);
-                if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
-                    if (ConnectivityReceiver.isConnected()){
-                        Log.d(TAG,"Event is :"+nameFile);
-                        uploadMultipart(getApplicationContext(),nameFile);
-                    }
-                }
+    public void onUploadNow(Context context,HashMap<String,String>hashMap) {
+        Log.d(TAG,"Call 0");
+        presenter.setFolder_name(hashMap.get(Constant.TAG_FOLDER_NAME));
+        presenter.setFile_name(hashMap.get(Constant.TAG_FILE_NAME));
+        presenter.setPath_file_name(hashMap.get(Constant.TAG_PATH_FOLDER_NAME));
+
+        String nameFile = presenter.getPath_file_name()+"/"+presenter.getFile_name();
+        Log.d(TAG," Call 1 name file : "+ nameFile);
+        if (presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
+            Log.d(TAG,"Call 2");
+            if (ConnectivityReceiver.isConnected()){
+                Log.d(TAG,"Call 3");
+                Log.d(TAG,"Event is :"+nameFile);
+                uploadMultipart(context,nameFile);
+            }
         }
     }
 
@@ -256,21 +270,22 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     .setDelegate(new UploadStatusDelegate() {
                         @Override
                         public void onProgress(Context context, UploadInfo uploadInfo) {
-
+                            Log.d(TAG,"Show onProgress");
                         }
 
                         @Override
                         public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
-
+                            Log.d(TAG,"Show onError");
                         }
 
                         @Override
                         public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
                             try{
+                                Log.d(TAG,"Show onCompleted");
                                 CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
                                 presenter.setUploading(false);
-                                presenter.getRealmController().mInsertObject(fileDocument,Constant.TAG_CODE_UPLOAD);
                                 Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
+                                presenter.getRealmController().mInsertObject(fileDocument,Constant.TAG_CODE_UPLOAD);
                             }
                             catch (Exception e){
                                 e.printStackTrace();
@@ -278,7 +293,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         }
                         @Override
                         public void onCancelled(Context context, UploadInfo uploadInfo) {
-
+                            Log.d(TAG,"Show onCancelled");
                         }
                     })
                     .startUpload();
@@ -300,6 +315,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
                 for (CAutoFileOffice index : listOffice){
                     if (isConnected){
+                        presenter.setFolder_name(index.folder_name);
                         uploadMultipart(this,index.pathFile);
                         isActive = true;
                     }
@@ -326,7 +342,29 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
     @Override
     public void onDownLoadCompleted(int count) {
-        presenter.getRealmController().mInsertObject(presenter.getFileDocumentList().get(count),1);
+        if (presenter.getFileDocumentList().size()==0){
+            Log.d(TAG,"Array is null");
+            return;
+        }
+
+        Realm realm = Realm.getDefaultInstance();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+               CFileDocument fileDocument =  realm.copyToRealmOrUpdate(presenter.getFileDocumentList().get(count));
+                fileDocument = realm.copyFromRealm(fileDocument);
+                Log.d(TAG,"Insert successful" + new Gson().toJson(fileDocument));
+            }
+        });
+        if (count == presenter.getFileDocumentList().size()-1){
+
+            Log.d(TAG,"onDownload Finish : " + presenter.getFileDocumentList().size());
+            realm.close();
+        }
+        else{
+            Log.d(TAG,"onDownload Completed");
+        }
+       // presenter.getRealmController().mInsertObject(presenter.getFileDocumentList().get(count),1);
     }
 
     @Override
