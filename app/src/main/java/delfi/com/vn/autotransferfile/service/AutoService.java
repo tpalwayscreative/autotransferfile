@@ -52,9 +52,6 @@ import rx.schedulers.Schedulers;
 public class AutoService extends Service implements ConnectivityReceiver.ConnectivityReceiverListener,AutoServiceView<CFileDocument>,DownloadService.DownLoadServiceListener,FileObserverService.FileObserverServiceListener{
 
     public static final String TAG = AutoService.class.getSimpleName();
-   // private Observer cameraObserver;
-   // private Observer pictureObserver ;
-   // private Observer downloadsObserver;
     private List<CAutoFileOffice> listOffice;
     private DownloadService downloadService ;
     private AutoServicePresenter presenter;
@@ -79,6 +76,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(TAG,"Destroy service");
         unregisterReceiver(broadcastReceiver);
     }
 
@@ -132,52 +130,24 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         }
 
-         /*
-        Observable.create(subscriber -> {
-            for (int i = 0 ;i < presenter.getListFolder().size();i++){
-                presenter.getListObserver().get(i).setListener(this);
-
-                if (index.isEnable){
-                    if (index.folder_name.equals("Camera")){
-                        cameraObserver = new Observer(index.path_folder_name);
-                        cameraObserver.startWatching();
-                    }
-                    else if(index.folder_name.equals("Picture")){
-                        pictureObserver = new Observer(index.path_folder_name);
-                        pictureObserver.startWatching();
-                    }
-                    else if(index.folder_name.equals("Downloads")){
-                        downloadsObserver = new Observer(index.path_folder_name);
-                        downloadsObserver.startWatching();
-                    }
-                }
-            }
-
-            subscriber.onNext(null);
-            subscriber.onCompleted();
-        }).observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.computation())
-                .subscribe(response -> {
-                });
-
-                 */
-
     }
 
     @Override
     public void onEvent(int event, String file, String path,String folder_name) {
-        Log.d(TAG,"show event : " +getEventString(event));
 
         if (event == FileObserver.CLOSE_WRITE || event == FileObserver.MOVED_TO) {
+            Log.d(TAG,"show event : " +getEventString(event));
             Log.d(TAG,"Show path of path : "+ path);
             Log.d(TAG,"Show name : " + file);
             if (ConnectivityReceiver.isConnected()){
-                HashMap<String,String>hashMap = new HashMap<>();
-                hashMap.put(Constant.TAG_PATH_FOLDER_NAME,path);
-                hashMap.put(Constant.TAG_FILE_NAME,file);
-                hashMap.put(Constant.TAG_FOLDER_NAME,folder_name);
-                presenter.getRealmController().getSearchObject(getApplicationContext(),"file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD,hashMap);
-
+                presenter.setDevice_id(FileUtil.getMacAddress());
+                presenter.setFile_name(file);
+                presenter.setFolder_name(folder_name);
+                presenter.setPath_file_name(path);
+                CFileDocument fileDocument = (CFileDocument) presenter.getRealmController().getSearchObject(getApplicationContext(),"file_name",file,CFileDocument.class);
+                if (fileDocument==null){
+                    presenter.onUpload();
+                }
             }
             else {
                 listOffice = FileUtil.mReadJsonDataFileOffice(getContext(),Constant.LIST_FILE_OFFICE);
@@ -200,44 +170,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     public void onDataOffice(List<CAutoFileOffice> list) {
         Log.d(TAG,"List office : "+ new Gson().toJson(list));
     }
-    /*
-
-    public class Observer extends FileObserver {
-        public String path;
-        public Observer(String path) {
-            super(path, FileObserver.CLOSE_WRITE);
-            this.path = path;
-            Log.d(TAG,"Full path : "+ path);
-        }
-
-        @Override
-        public void onEvent(int event, String file) {
-            if (event == FileObserver.CLOSE_WRITE) {
-
-                if (ConnectivityReceiver.isConnected()){
-                    presenter.getRealmController().getSearchObject("file_name",file,CFileDocument.class,Constant.TAG_CODE_UPLOAD);
-                    presenter.setFile_name(file);
-                }
-                else {
-                    listOffice = FileUtil.mReadJsonDataFileOffice(getContext(),Constant.LIST_FILE_OFFICE);
-                    if (listOffice==null){
-                        listOffice = new ArrayList<>();
-                    }
-                    for (CFolder index : presenter.getListFolder()){
-                        String nameFile = index.path_folder_name+"/"+file;
-                        presenter.setFolder_name(index.folder_name);
-                        if (index.isEnable && presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
-                            listOffice.add(new CAutoFileOffice(nameFile));
-                        }
-                    }
-                    FileUtil.mDeleteFile(getContext(),Constant.LIST_FILE_OFFICE);
-                    FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
-                }
-            }
-        }
-    }
-
-    */
 
     @Override
     public void onDownLoadNow() {
@@ -252,11 +184,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
     @Override
     public void onUploadNow(Context context,HashMap<String,String>hashMap) {
-        Log.d(TAG,"Call 0");
-        presenter.setFolder_name(hashMap.get(Constant.TAG_FOLDER_NAME));
-        presenter.setFile_name(hashMap.get(Constant.TAG_FILE_NAME));
-        presenter.setPath_file_name(hashMap.get(Constant.TAG_PATH_FOLDER_NAME));
-
         String nameFile = presenter.getPath_file_name()+"/"+presenter.getFile_name();
         Log.d(TAG," Call 1 name file : "+ nameFile);
         if (presenter.getStorage().isFileExist(nameFile) && FileUtil.fileAccept(new File(nameFile))){
@@ -264,7 +191,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             if (ConnectivityReceiver.isConnected()){
                 Log.d(TAG,"Call 3");
                 Log.d(TAG,"Event is :"+nameFile);
-                uploadMultipart(context,nameFile);
+                uploadMultipart(nameFile);
             }
         }
     }
@@ -273,11 +200,12 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         presenter.getAllFile();
     }
 
-    public void uploadMultipart(final Context context, String filePath) {
+    public void uploadMultipart(String filePath) {
         try {
             Log.d(TAG,"file upload : "+ filePath);
             Log.d(TAG,"Folder : " + presenter.getFile_name() + " Device_id : "+ presenter.getDevice_id());
-            new MultipartUploadRequest(context, Constant.File_UPLOAD_AUTO)
+
+            new MultipartUploadRequest(getApplicationContext(), Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
                     .addFileToUpload(filePath,Constant.TAG_FILE_UPLOAD)
                     .addParameter(Constant.TAG_FOLDER_NAME,presenter.getFolder_name())
@@ -294,6 +222,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         @Override
         public void onProgress(Context context, UploadInfo uploadInfo) {
             // your implementation
+            Log.d(TAG,"show progress : " + new Gson().toJson(uploadInfo.getFilesLeft()));
         }
 
         @Override
@@ -303,11 +232,26 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
 
         @Override
         public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
-            Log.d(TAG,"Show onCompleted");
+            Log.d(TAG,"Show onCompleted" + new Gson().toJson(uploadInfo.getFilesLeft()));
             CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
-            presenter.setUploading(false);
             Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
-            presenter.getRealmController().mInsertObject(fileDocument,Constant.TAG_CODE_UPLOAD);
+
+            if (listOffice.size()>0){
+                int count = presenter.getCountUploading();
+                count +=1;
+                presenter.setCountUploading(count);
+                presenter.getRealmController().mInsertObject(fileDocument);
+                if (count==listOffice.size()-1){
+                    Log.d(TAG,"Uploading finished");
+                    presenter.getAllFile();
+                    FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
+                    FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
+                    listOffice = new ArrayList<>();
+                }
+            }
+            else{
+                presenter.getAllFile();
+            }
         }
 
         @Override
@@ -333,11 +277,14 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 for (CAutoFileOffice index : listOffice){
                     if (isConnected){
                         presenter.setFolder_name(index.folder_name);
-                        uploadMultipart(this,index.pathFile);
+                        presenter.setDevice_id(FileUtil.getMacAddress());
+                        uploadMultipart(index.pathFile);
                         isActive = true;
                     }
                 }
+
                 Log.d(TAG,"Internet changed");
+
             }
             catch (NullPointerException e){
                 e.printStackTrace();
@@ -349,9 +296,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 .subscribe(response -> {
                     boolean isResponse = (boolean)response;
                     if (isResponse){
-                        FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
-                        FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
-                        listOffice = new ArrayList<>();
+
                     }
                 });
     }

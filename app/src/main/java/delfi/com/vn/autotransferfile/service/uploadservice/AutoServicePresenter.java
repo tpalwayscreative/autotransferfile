@@ -46,11 +46,13 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private ServerAPI serverAPI ;
     private List<CFileDocument>fileDocumentList;
     private List<CFolder> listFolder ;
+    private CUser cUser;
     private RealmController realmController ;
     private String folder_name;
     private String author = null ;
     private Storage storage ;
     private boolean isUploading = false;
+    private int countUploading = 0 ;
     private String file_name ;
 
 
@@ -68,8 +70,17 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         listObserver = new ArrayList<>();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
         realmController = RealmController.with(this);
-        realmController.getFirstItem(CUser.class,0);
-        realmController.getALLObject(CFolder.class,1);
+
+        cUser = (CUser) realmController.getFirstItem(CUser.class);
+        if (cUser!=null){
+            this.author = cUser.apiKey;
+        }
+        listFolder = realmController.getALLObject(CFolder.class);
+        if (listFolder!=null){
+            for (CFolder index : listFolder){
+                listObserver.add(new FileObserverService(index.path_folder_name,index.folder_name));
+            }
+        }
         storage = new Storage(context);
     }
 
@@ -86,7 +97,10 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
-                    realmController.getALLObject(CFileDocument.class,1);
+                    fileDocumentList = realmController.getALLObject(CFileDocument.class);
+                    if (fileDocumentList==null){
+                        fileDocumentList = new ArrayList<>();
+                    }
                     Log.d(TAG,"action 0");
                 })
                 .subscribe(onResponse -> {
@@ -158,6 +172,8 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         }
     }
 
+
+
     @Override
     public String onAuthorToken() {
         return this.author;
@@ -191,6 +207,16 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
             view.onUploadNow(context,hashMap);
             Log.d(TAG,"Query item here work here");
         }
+    }
+
+    public void onShowDataHashMap(Context context,HashMap hashMap){
+        AutoServiceView view = view();
+        view.onUploadNow(context,hashMap);
+    }
+
+    public void onUpload(){
+        AutoServiceView view = view();
+        view.onUploadNow(getContext(),new HashMap<>());
     }
 
     @Override
@@ -316,6 +342,13 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         this.path_file_name = path_file_name;
     }
 
+    public int getCountUploading() {
+        return countUploading;
+    }
+
+    public void setCountUploading(int countUploading) {
+        this.countUploading = countUploading;
+    }
 
 
 

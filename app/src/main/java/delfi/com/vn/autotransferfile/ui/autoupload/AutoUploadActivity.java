@@ -61,7 +61,10 @@ public class AutoUploadActivity extends AutoUploadRemote {
         switch (item.getItemId()){
             case R.id.action_SettingScanner : {
                     presenter.getRealmController().clearAll(CFolder.class,0);
-                    presenter.getRealmController().mInsertList(CFolder.class,presenter.getListFolder(),0);
+                    List<CFolder> list = presenter.getRealmController().mInsertList(CFolder.class,presenter.getListFolder());
+                    if (list!=null){
+                        presenter.setListFolder(list);
+                    }
                     Toast.makeText(this, "Saved successfully", Toast.LENGTH_SHORT).show();
                     stopService(intent);
                     startService(intent);

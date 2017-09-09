@@ -59,7 +59,10 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
         dependencies.init();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
         realmController = RealmController.with(this);
-        realmController.getFirstItem(CUser.class,0);
+        CUser cUser = (CUser) realmController.getFirstItem(CUser.class);
+        if (cUser!=null){
+            author = cUser.apiKey;
+        }
         storage = new Storage(activity);
     }
 
@@ -81,9 +84,9 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
                 })
                 .subscribe(onResponse -> {
                     realmController.clearAll(CFolder.class,0);
-                    realmController.mInsertList(CFolder.class,onResponse.folder,0);
-                    setListFolder(onResponse.folder);
-                    view.onShowList(onResponse.folder);
+                    listFolder = realmController.mInsertList(CFolder.class,onResponse.folder);
+                    setListFolder(listFolder);
+                    view.onShowList(listFolder);
                     Log.d(TAG,"show all folder : " + new Gson().toJson(onResponse));
                     view.onHideLoading();
                 }, throwable -> {

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.util.HashMap;
 import java.util.List;
 import delfi.com.vn.autotransferfile.R;
@@ -23,7 +25,22 @@ public class SplashScreen extends BaseActivity implements RealmController.RealmC
         setContentView(R.layout.activity_splash_screen);
         handler = new Handler();
         instance = RealmController.with(this);
-        instance.getFirstItem(CUser.class,0);
+        CUser cUser = (CUser) instance.getFirstItem(CUser.class);
+        Log.d(TAG,new Gson().toJson(cUser));
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (cUser!=null){
+                    Navigator.moveToHome(getApplicationContext());
+                }
+                else{
+                    Navigator.moveToUser(getApplicationContext());
+                }
+                finish();
+            }
+        },200);
+
+
     }
 
     @Override
