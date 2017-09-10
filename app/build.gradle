@@ -83,7 +83,7 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.snatik:storage:2.1.0'
     compile 'com.google.code.gson:gson:2.8.1'
-    compile 'com.github.delficode:delfiandroidcore:9.0.1'
+    compile 'com.github.delficode:delfiandroidcore:9.0.2'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'commons-collections:commons-collections:3.2.1'
 

@@ -42,6 +42,7 @@ public interface ServerAPI {
     String AUTO_GET_LIST_FOLDER = "/api/folder/GetCurentFolder";
     String AUTO_GET_ALL_FILE = "/api/file/GetAllCurentFiles/";
     String AUTO_GET_CURRENT_FILE = "/api/file/GetCurentFiles/";
+    String AUTO_GET_LATEST_FILE = "/api/file/GetNewCurentFiles";
 
 
     @FormUrlEncoded
@@ -63,6 +64,9 @@ public interface ServerAPI {
 
     @GET(AUTO_GET_ALL_FILE)
     Observable<FileDocumentResponse>getALLFile();
+
+    @POST(AUTO_GET_LATEST_FILE)
+    Observable<FileDocumentResponse>getLatestFile(@Body FileDocumentRequest request);
 
     @POST(AUTO_GET_CURRENT_FILE)
     Observable<FileDocumentResponse>getAllFile(@Body FileDocumentRequest request);

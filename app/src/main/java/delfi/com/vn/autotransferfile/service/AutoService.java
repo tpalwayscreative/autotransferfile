@@ -203,7 +203,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
     public void uploadMultipart(String filePath) {
         try {
             Log.d(TAG,"file upload : "+ filePath);
-            Log.d(TAG,"Folder : " + presenter.getFile_name() + " Device_id : "+ presenter.getDevice_id());
+            Log.d(TAG,"Folder : " + presenter.getFolder_name() + " Device_id : "+ presenter.getDevice_id());
 
             new MultipartUploadRequest(getApplicationContext(), Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
@@ -235,13 +235,12 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             Log.d(TAG,"Show onCompleted" + new Gson().toJson(uploadInfo.getFilesLeft()));
             CFileDocument fileDocument =  new Gson().fromJson(serverResponse.getBodyAsString(),CFileDocument.class);
             Log.d(TAG,"Upload successful" + new Gson().toJson(fileDocument));
-
+            presenter.getRealmController().mInsertObject(fileDocument);
             if (listOffice.size()>0){
                 int count = presenter.getCountUploading();
                 count +=1;
                 presenter.setCountUploading(count);
-                presenter.getRealmController().mInsertObject(fileDocument);
-                if (count==listOffice.size()-1){
+                if (count==listOffice.size()){
                     Log.d(TAG,"Uploading finished");
                     presenter.getAllFile();
                     FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
@@ -275,11 +274,16 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 }
 
                 for (CAutoFileOffice index : listOffice){
-                    if (isConnected){
-                        presenter.setFolder_name(index.folder_name);
-                        presenter.setDevice_id(FileUtil.getMacAddress());
-                        uploadMultipart(index.pathFile);
-                        isActive = true;
+                    if (presenter.getStorage().isFileExist(index.pathFile) && FileUtil.fileAccept(new File(index.pathFile))){
+                      if (isConnected){
+                         presenter.setFolder_name(index.folder_name);
+                         presenter.setDevice_id(FileUtil.getMacAddress());
+                         uploadMultipart(index.pathFile);
+                         isActive = true;
+                     }
+                    }
+                    else{
+                        Log.d(TAG,"File is not existing");
                     }
                 }
 

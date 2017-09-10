@@ -19,6 +19,7 @@ import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
+import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
@@ -46,6 +47,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private ServerAPI serverAPI ;
     private List<CFileDocument>fileDocumentList;
     private List<CFolder> listFolder ;
+    private CFileDocument fileDocument ;
     private CUser cUser;
     private RealmController realmController ;
     private String folder_name;
@@ -116,6 +118,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                         ResponseBody body = ((HttpException) throwable).response().errorBody();
                         try {
                             JSONObject object = new JSONObject(body.string());
+                            Log.d(TAG,new Gson().toJson(object));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
@@ -126,6 +129,48 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                     }
                 }));
     }
+
+    public void getLatestFile(FileDocumentRequest request){
+        AutoServiceView view = view();
+        if (view == null) {
+            return;
+        }
+        if (NetworkUtil.pingIpAddress(view.getContext())) {
+            return;
+        }
+        subscriptions.add(serverAPI.getLatestFile(request)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(() -> {
+                    Log.d(TAG,"action 0");
+                })
+                .subscribe(onResponse -> {
+                    Log.d(TAG,"list from internet : "+ new Gson().toJson(onResponse.files));
+                    Log.d(TAG,"list from local : "+ new Gson().toJson(fileDocumentList));
+                    fileDocumentList = onResponse.files;
+                    Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
+                    if (fileDocumentList.size()>0){
+                        view.onDownLoadNow();
+                    }
+                }, throwable -> {
+                    if (throwable instanceof HttpException) {
+                        ResponseBody body = ((HttpException) throwable).response().errorBody();
+                        try {
+                            JSONObject object = new JSONObject(body.string());
+                            Log.d(TAG,new Gson().toJson(object));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }else {
+                        Log.d(TAG,context.getString(R.string.tv_issue));
+                    }
+                }));
+    }
+
+
+
 
     public List<CFileDocument> onCompare(List<CFileDocument>current, List<CFileDocument>previous){
         List<CFileDocument> list = new ArrayList<>();
@@ -303,8 +348,6 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         return listFolder;
     }
 
-
-
     public void setListFolder(List<CFolder> listFolder) {
         this.listFolder = listFolder;
     }
@@ -324,7 +367,6 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     public void setUploading(boolean uploading) {
         isUploading = uploading;
     }
-
 
     public List<FileObserverService> getListObserver() {
         return listObserver;
@@ -350,9 +392,13 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         this.countUploading = countUploading;
     }
 
+    public CFileDocument getFileDocument() {
+        return fileDocument;
+    }
 
-
-
+    public void setFileDocument(CFileDocument fileDocument) {
+        this.fileDocument = fileDocument;
+    }
 
 
 }

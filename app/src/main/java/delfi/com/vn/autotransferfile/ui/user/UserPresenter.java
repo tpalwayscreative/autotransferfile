@@ -96,9 +96,11 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     view.onHideLoading();
                     if (throwable instanceof HttpException) {
                         ResponseBody body = ((HttpException) throwable).response().errorBody();
+
                         try {
+                            Log.d(TAG,body.string());
                             JSONObject object = new JSONObject(body.string());
-                            view.onShowError(object.getString("error_message"));
+                            view.onShowError(new Gson().toJson(object));
                         } catch (JSONException e) {
                             view.onShowError(throwable.getMessage());
                             e.printStackTrace();
