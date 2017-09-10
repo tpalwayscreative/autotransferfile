@@ -38,7 +38,7 @@ import rx.schedulers.Schedulers;
  * Created by PC on 8/30/2017.
  */
 
-public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements RealmController.RealmControllerListener,Dependencies.DependenciesListener {
+public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements Dependencies.DependenciesListener {
 
     private List<CFolder> listFolder ;
     private Activity activity ;
@@ -58,12 +58,21 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
         dependencies.dependenciesListener(this);
         dependencies.init();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
-        realmController = RealmController.with(this);
+        realmController = RealmController.with();
         CUser cUser = (CUser) realmController.getFirstItem(CUser.class);
+        listFolder = realmController.getALLObject(CFolder.class);
         if (cUser!=null){
             author = cUser.apiKey;
         }
+        if (listFolder!=null){
+            setListFolder(listFolder);
+        }
         storage = new Storage(activity);
+    }
+
+    public void onShowData(){
+        AutoUploadView view = view();
+        view.onShowList(listFolder);
     }
 
 
@@ -118,66 +127,6 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
     @Override
     public String onAuthorToken() {
         return this.author;
-    }
-
-    @Override
-    public void onShowRealmObject(Object o, int i) {
-        if (o != null && o instanceof CUser){
-            CUser cUser1  = realmController.getRealm().copyFromRealm((CUser) o);
-            this.author = cUser1.apiKey;
-        }
-    }
-
-    @Override
-    public void onShowRealmList(List list, int i) {
-        AutoUploadView view = view();
-        if (list != null && !list.isEmpty()){
-            if (list.get(0) instanceof CFolder){
-                List<CFolder> list1 = realmController.getRealm().copyFromRealm(list);
-                setListFolder(list1);
-                view.onShowList(list1);
-            }
-            Log.d(TAG,"running 1");
-        }
-        else{
-            Log.d(TAG,"running 2");
-            onGetListFolder();
-        }
-    }
-
-    @Override
-    public void onShowRealmCheck(boolean b, int i) {
-
-    }
-
-    @Override
-    public void onShowRealmQueryItem(Object o, int i) {
-
-    }
-
-    @Override
-    public void onRealmUpdated(Object o, int i) {
-
-    }
-
-    @Override
-    public void onRealmDeleted(boolean b, int i) {
-
-    }
-
-    @Override
-    public void onRealmInserted(Object o, int i) {
-
-    }
-
-    @Override
-    public void onRealmInsertedList(List list, int i) {
-
-    }
-
-    @Override
-    public void onShowRealmQueryItem(Context context, Object o, HashMap hashMap, int i) {
-
     }
 
     public Storage getStorage() {

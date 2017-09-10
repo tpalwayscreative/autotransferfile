@@ -10,15 +10,21 @@ import io.realm.annotations.PrimaryKey;
 public class CUser extends RealmObject implements Serializable{
 
     @PrimaryKey
+    public String device_id;
     public String apiKey;
     public String name;
     public String email;
     public String created_date;
     public String updated_date;
-    public String device_id;
+
 
     public CUser(){
 
+    }
+
+    public CUser(String apiKey,String device_id){
+        this.apiKey = apiKey ;
+        this.device_id = device_id ;
     }
 
     public CUser(String name, String email, String apiKey, String created_date,String updated_date){

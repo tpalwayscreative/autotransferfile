@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.snatik.storage.Storage;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.ListUtils;
 import org.json.JSONException;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
@@ -41,7 +39,7 @@ import rx.schedulers.Schedulers;
  * Created by PC on 9/6/2017.
  */
 
-public class AutoServicePresenter extends Presenter<AutoServiceView> implements RealmController.RealmControllerListener,Dependencies.DependenciesListener{
+public class AutoServicePresenter extends Presenter<AutoServiceView> implements Dependencies.DependenciesListener{
 
     private Context context ;
     private ServerAPI serverAPI ;
@@ -56,8 +54,6 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private boolean isUploading = false;
     private int countUploading = 0 ;
     private String file_name ;
-
-
     private String path_file_name ;
     private List<FileObserverService> listObserver;
     public static final String TAG = AutoServicePresenter.class.getSimpleName();
@@ -71,8 +67,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         listFolder = new ArrayList<>();
         listObserver = new ArrayList<>();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
-        realmController = RealmController.with(this);
-
+        realmController = RealmController.with();
         cUser = (CUser) realmController.getFirstItem(CUser.class);
         if (cUser!=null){
             this.author = cUser.apiKey;
@@ -86,8 +81,19 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         storage = new Storage(context);
     }
 
-    public void getAllFile(){
+    public boolean isCheckLoading(){
+        CFileDocument cFileDocument = (CFileDocument) realmController.getLatestObject(CFileDocument.class,"file_document_id");
+        if (cFileDocument!=null){
+            setFileDocument(cFileDocument);
+            return true;
+        }
+        else{
+            setFileDocument(null);
+            return false;
+        }
+    }
 
+    public void getAllFile(){
         AutoServiceView view = view();
         if (view == null) {
             return;
@@ -99,16 +105,12 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
-                    fileDocumentList = realmController.getALLObject(CFileDocument.class);
-                    if (fileDocumentList==null){
-                        fileDocumentList = new ArrayList<>();
-                    }
-                    Log.d(TAG,"action 0");
+                    fileDocumentList.clear();
+                    Log.d(TAG,"action 0 : " + new Gson().toJson(fileDocumentList) );
                 })
                 .subscribe(onResponse -> {
                     Log.d(TAG,"list from internet : "+ new Gson().toJson(onResponse.files));
-                    Log.d(TAG,"list from local : "+ new Gson().toJson(fileDocumentList));
-                    fileDocumentList = onCompare(onResponse.files,fileDocumentList);
+                    fileDocumentList = onResponse.files;
                     Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
                     if (fileDocumentList.size()>0){
                         view.onDownLoadNow();
@@ -138,19 +140,23 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         if (NetworkUtil.pingIpAddress(view.getContext())) {
             return;
         }
+
         subscriptions.add(serverAPI.getLatestFile(request)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
-                    Log.d(TAG,"action 0");
+                    Log.d(TAG,"file document : " + request.file_document_id);
+                    fileDocumentList.clear();
+                    Log.d(TAG,"action 0 filter : " + new Gson().toJson(fileDocumentList) );
                 })
                 .subscribe(onResponse -> {
-                    Log.d(TAG,"list from internet : "+ new Gson().toJson(onResponse.files));
-                    Log.d(TAG,"list from local : "+ new Gson().toJson(fileDocumentList));
-                    fileDocumentList = onResponse.files;
-                    Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
-                    if (fileDocumentList.size()>0){
-                        view.onDownLoadNow();
+                    Log.d(TAG,"list from internet filter : "+ new Gson().toJson(onResponse.files));
+                    if (onResponse.files!=null){
+                        fileDocumentList = onResponse.files;
+                        Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
+                        if (onResponse.files.size()>0){
+                            view.onDownLoadNow();
+                        }
                     }
                 }, throwable -> {
                     if (throwable instanceof HttpException) {
@@ -170,8 +176,6 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     }
 
 
-
-
     public List<CFileDocument> onCompare(List<CFileDocument>current, List<CFileDocument>previous){
         List<CFileDocument> list = new ArrayList<>();
         for (CFileDocument index : current) {
@@ -188,37 +192,6 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         return  list;
     }
 
-
-
-    @Override
-    public void onShowRealmObject(Object object,int code) {
-        if (object instanceof CUser){
-            object = realmController.getRealm().copyFromRealm((CUser)object);
-            Log.d(TAG,"on Show Realm Object :" + new Gson().toJson(object));
-            this.device_id = ((CUser) object).device_id;
-            this.author =  ((CUser) object).apiKey;
-        }
-    }
-
-    @Override
-    public void onShowRealmList(List list,int code) {
-        if (list!=null && !list.isEmpty()){
-            if (list.get(0) instanceof CFileDocument){
-                fileDocumentList = realmController.getRealm().copyFromRealm(list);
-                Log.d(TAG,"File is existing in local data : "+ new Gson().toJson(this.fileDocumentList));
-            }
-            else if (list.get(0) instanceof CFolder){
-                listFolder = realmController.getRealm().copyFromRealm(list);
-                for (CFolder index : listFolder){
-                    listObserver.add(new FileObserverService(index.path_folder_name,index.folder_name));
-                }
-                Log.d(TAG,"List Folder : "+ new Gson().toJson(listFolder));
-            }
-        }
-    }
-
-
-
     @Override
     public String onAuthorToken() {
         return this.author;
@@ -233,26 +206,8 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         return context;
     }
 
-    @Override
-    public void onShowRealmCheck(boolean b,int code) {
-
-    }
-
-    @Override
-    public void onShowRealmQueryItem(Object o,int code) {
-
-    }
 
 
-
-    @Override
-    public void onShowRealmQueryItem(Context context, Object o, HashMap hashMap, int i) {
-        AutoServiceView view = view();
-        if (o==null){
-            view.onUploadNow(context,hashMap);
-            Log.d(TAG,"Query item here work here");
-        }
-    }
 
     public void onShowDataHashMap(Context context,HashMap hashMap){
         AutoServiceView view = view();
@@ -264,43 +219,12 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         view.onUploadNow(getContext(),new HashMap<>());
     }
 
-    @Override
-    public void onRealmUpdated(Object o,int code) {
-
-    }
 
     public void onShowDataOffice(List<CAutoFileOffice>list){
         AutoServiceView view = view();
         view.onDataOffice(list);
     }
 
-    @Override
-    public void onRealmDeleted(boolean b,int code) {
-
-    }
-
-    @Override
-    public void onRealmInserted(Object o,int code) {
-        if (code== Constant.TAG_CODE_UPLOAD && !isUploading){
-            Log.d(TAG,"show finish here");
-            getAllFile();
-        }
-    }
-
-    @Override
-    public void onRealmInsertedList(List list,int code) {
-        AutoServiceView view = view();
-        if (list != null && !list.isEmpty()){
-            if (list.get(0) instanceof CFileDocument){
-                List<CFileDocument> list1= realmController.getRealm().copyFromRealm(list);
-                if (code==1){
-                    this.fileDocumentList = list1;
-                   // view.onDownLoadNow();
-                }
-                Log.d(TAG,"Show inserted list : "+ new Gson().toJson(list1));
-            }
-        }
-    }
 
     public String getDevice_id() {
         return device_id;

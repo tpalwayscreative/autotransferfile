@@ -3,6 +3,7 @@ package delfi.com.vn.autotransferfile.model;
 import java.util.Date;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by PC on 9/1/2017.
@@ -10,6 +11,7 @@ import io.realm.RealmObject;
 
 public class CGroups extends RealmObject{
 
+    @PrimaryKey
     public int group_id;
     public String group_name;
     public String created_date;

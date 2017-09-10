@@ -8,4 +8,10 @@ import dk.delfi.core.common.api.request.BaseRequest;
 
 public class FileDocumentRequest extends BaseRequest {
 
+    public int file_document_id ;
+
+    public FileDocumentRequest(int file_document_id){
+        this.file_document_id = file_document_id;
+    }
+
 }

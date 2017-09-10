@@ -21,6 +21,7 @@ import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CFolder;
+import delfi.com.vn.autotransferfile.model.CUser;
 import delfi.com.vn.autotransferfile.service.AutoService;
 import dk.delfi.core.ui.recycleview.DPRecyclerView;
 
@@ -38,7 +39,7 @@ public class AutoUploadActivity extends AutoUploadRemote {
         recyclerView.setAdapter(adapter);
         presenter = new AutoUploadPresenter(this);
         presenter.bindView(this);
-        presenter.getRealmController().getALLObject(CFolder.class,100);
+        presenter.onShowData();
         PermissionUtils.checkAndRequestPermissions(this);
         intent = new Intent(this, AutoService.class);
         startService(intent);
@@ -60,7 +61,6 @@ public class AutoUploadActivity extends AutoUploadRemote {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_SettingScanner : {
-                    presenter.getRealmController().clearAll(CFolder.class,0);
                     List<CFolder> list = presenter.getRealmController().mInsertList(CFolder.class,presenter.getListFolder());
                     if (list!=null){
                         presenter.setListFolder(list);
@@ -71,8 +71,10 @@ public class AutoUploadActivity extends AutoUploadRemote {
                 return true;
             }
             case R.id.action_Logout :{
-                Navigator.moveToUser(getContext());
-                finish();
+                if (presenter.getRealmController().clearAll(CUser.class)){
+                    Navigator.moveToUser(getContext());
+                    finish();
+                }
                 return true;
             }
         }

@@ -2,6 +2,7 @@ package delfi.com.vn.autotransferfile.model;
 import java.io.Serializable;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by PC on 9/1/2017.
@@ -9,6 +10,7 @@ import io.realm.RealmObject;
 
 public class CFolder extends RealmObject implements Serializable{
 
+    @PrimaryKey
     public int folder_id ;
     public int group_id;
     public String folder_name ;
@@ -17,13 +19,14 @@ public class CFolder extends RealmObject implements Serializable{
     public int status ;
     public boolean isEnable ;
     public String path_folder_name ;
+    public boolean isCanCreated ;
 
 
     public CFolder(){
 
     }
 
-    public CFolder(int folder_id,boolean isEnable,String path_folder_name,int group_id,String folder_name,String created_date,String updated_date,int status){
+    public CFolder(int folder_id,boolean isCanCreated,boolean isEnable,String path_folder_name,int group_id,String folder_name,String created_date,String updated_date,int status){
         this.folder_id = folder_id;
         this.group_id = group_id;
         this.folder_name = folder_name;
@@ -32,6 +35,7 @@ public class CFolder extends RealmObject implements Serializable{
         this.status = status;
         this.isEnable = isEnable;
         this.path_folder_name = path_folder_name;
+        this.isCanCreated = isCanCreated;
     }
 
 

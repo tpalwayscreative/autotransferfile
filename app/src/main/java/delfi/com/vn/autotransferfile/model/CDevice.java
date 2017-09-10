@@ -3,12 +3,14 @@ package delfi.com.vn.autotransferfile.model;
 import java.util.List;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by PC on 9/1/2017.
  */
 
 public class CDevice extends RealmObject{
+    @PrimaryKey
     public String device_id ;
     public int flag_login;
     public String name_device ;

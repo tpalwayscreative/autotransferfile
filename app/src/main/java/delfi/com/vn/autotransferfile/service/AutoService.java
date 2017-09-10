@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import delfi.com.vn.autotransferfile.Constant;
+import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
@@ -196,10 +197,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         }
     }
 
-    public void onService(){
-        presenter.getAllFile();
-    }
-
     public void uploadMultipart(String filePath) {
         try {
             Log.d(TAG,"file upload : "+ filePath);
@@ -242,14 +239,24 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 presenter.setCountUploading(count);
                 if (count==listOffice.size()){
                     Log.d(TAG,"Uploading finished");
-                    presenter.getAllFile();
+                    if (presenter.isCheckLoading()){
+                        FileDocumentRequest fileDocumentRequest = new FileDocumentRequest(presenter.getFileDocument().file_document_id);
+                        presenter.getLatestFile(fileDocumentRequest);
+                    }else{
+                        presenter.getAllFile();
+                    }
                     FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
                     FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
                     listOffice = new ArrayList<>();
                 }
             }
             else{
-                presenter.getAllFile();
+                if (presenter.isCheckLoading()){
+                    FileDocumentRequest fileDocumentRequest = new FileDocumentRequest(presenter.getFileDocument().file_document_id);
+                    presenter.getLatestFile(fileDocumentRequest);
+                }else{
+                    presenter.getAllFile();
+                }
             }
         }
 

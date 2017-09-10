@@ -1,7 +1,5 @@
 package delfi.com.vn.autotransferfile.model;
-
 import com.google.gson.Gson;
-
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 

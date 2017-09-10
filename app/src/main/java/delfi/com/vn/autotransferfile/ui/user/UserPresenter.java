@@ -4,15 +4,15 @@ import android.content.Context;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.snatik.storage.Storage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
@@ -35,12 +35,14 @@ import rx.schedulers.Schedulers;
  * Created by PC on 9/1/2017.
  */
 
-public class UserPresenter extends Presenter<UserView> implements Dependencies.DependenciesListener,RealmController.RealmControllerListener{
+public class UserPresenter extends Presenter<UserView> implements Dependencies.DependenciesListener{
 
     private Activity activity;
     private ServerAPI serverAPI ;
     public static final String TAG= UserPresenter.class.getSimpleName();
     private String author = null ;
+    private CUser cUser;
+    private Storage storage ;
     private RealmController realmController ;
 
     public UserPresenter(Activity activity){
@@ -49,16 +51,8 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
         dependencies.dependenciesListener(this);
         dependencies.init();
         serverAPI = (ServerAPI) Dependencies.serverAPI;
-        realmController = RealmController.with(this);
-        realmController.getFirstItem(CUser.class,0);
-    }
-
-    @Override
-    public void onShowRealmObject(Object cUser,int code) {
-        if (cUser != null && cUser instanceof CUser){
-            CUser cUser1  = realmController.getRealm().copyFromRealm((CUser) cUser);
-            this.author = cUser1.apiKey;
-        }
+        realmController = RealmController.with();
+        storage = new Storage(activity);
     }
 
     public void userLogin(GroupRequest groupRequest){
@@ -84,13 +78,11 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     view.onShowLoading();
                 })
                 .subscribe(onResponse -> {
-                    CUser user = new CUser();
-                    user.apiKey = onResponse.access_token;
-                    user.device_id = onResponse.device_id;
-                    realmController.clearAll(CUser.class,0);
-                    realmController.mInsertObject(user,0);
-                    view.onLoginSuccessful();
-                    Log.d(TAG,"Login" + new Gson().toJson(onResponse));
+                    cUser = new CUser(onResponse.access_token,onResponse.device_id);
+                    Log.d(TAG,"Login" + new Gson().toJson(cUser));
+                    this.author = cUser.apiKey;
+                    getListFolder();
+
                     view.onHideLoading();
                 }, throwable -> {
                     view.onHideLoading();
@@ -131,9 +123,22 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     view.onShowLoading();
                 })
                 .subscribe(onResponse -> {
-
-                    realmController.clearAll(CFolder.class,0);
-                    realmController.mInsertList(CFolder.class,onResponse.folder,0);
+                    List<CFolder> list = onResponse.folder;
+                    for (CFolder index : list){
+                        if (storage.isDirectoryExists(index.path_folder_name)){
+                            index.isCanCreated = true;
+                        }
+                        else{
+                            if (storage.createDirectory(index.path_folder_name)){
+                                index.isCanCreated = true;
+                            }
+                        }
+                    }
+                    list = realmController.mInsertList(CFolder.class,list);
+                    if (list!=null){
+                        realmController.mInsertObject(cUser);
+                        view.onLoginSuccessful();
+                    }
                     Log.d(TAG,"show all folder : " + new Gson().toJson(onResponse));
                     view.onHideLoading();
 
@@ -198,58 +203,6 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                 }));
     }
 
-    @Override
-    public void onShowRealmList(List list,int code) {
-
-
-    }
-
-    @Override
-    public void onShowRealmCheck(boolean b,int code) {
-
-    }
-
-    @Override
-    public void onShowRealmQueryItem(Object o,int code) {
-
-    }
-
-    @Override
-    public void onRealmUpdated(Object o,int code) {
-
-    }
-
-    @Override
-    public void onRealmDeleted(boolean b,int code) {
-
-    }
-
-    @Override
-    public void onShowRealmQueryItem(Context context, Object o, HashMap hashMap, int i) {
-
-    }
-
-    @Override
-    public void onRealmInserted(Object cUser,int code) {
-        if (cUser !=null){
-            if (cUser instanceof CUser){
-                CUser cUser1 = (CUser) cUser;
-                cUser1 = realmController.getRealm().copyFromRealm(cUser1);
-                this.author = cUser1.apiKey;
-                Log.d(TAG,"Inserted user successfully : " + new Gson().toJson(cUser1));
-            }
-        }
-    }
-
-    @Override
-    public void onRealmInsertedList(List list,int code) {
-        if (list !=null && !list.isEmpty()){
-            if (list.get(0) instanceof CFolder){
-                List<CFolder> list1 = realmController.getRealm().copyFromRealm(list) ;
-                Log.d(TAG,"Show List of folder : "+ new Gson().toJson(list1));
-            }
-        }
-    }
 
     @Override
     public String onAuthorToken() {
