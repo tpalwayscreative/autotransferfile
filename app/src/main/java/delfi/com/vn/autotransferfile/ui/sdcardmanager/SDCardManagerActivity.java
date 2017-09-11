@@ -181,7 +181,7 @@ public class SDCardManagerActivity extends BaseActivity implements
         mFilesAdapter.setFiles(files);
         mFilesAdapter.notifyDataSetChanged();
     }
-    
+
 
     @Override
     public void onClick(File file) {
