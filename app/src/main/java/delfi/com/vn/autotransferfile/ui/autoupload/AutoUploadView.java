@@ -11,4 +11,6 @@ import dk.delfi.core.common.presenter.BaseView;
 public interface  AutoUploadView extends BaseView<CFolder>{
     void onShowList(List<CFolder>list);
     void onShowError(String alert);
+    void onDownLoadNow();
+    void onLogoutSuccessfully();
 }

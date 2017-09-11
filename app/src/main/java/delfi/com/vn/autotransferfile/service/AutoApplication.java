@@ -5,11 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 //import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 import com.snatik.storage.Storage;
-
 import net.gotev.uploadservice.BuildConfig;
 import net.gotev.uploadservice.UploadService;
 import net.gotev.uploadservice.okhttp.OkHttpStack;
@@ -36,6 +36,7 @@ public class AutoApplication extends BaseApplication implements Application.Acti
     private Storage storage ;
     private static AutoApplication mInstance;
     private RealmController realms ;
+
     @Override
     public void onCreate() {
         super.onCreate();

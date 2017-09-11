@@ -19,11 +19,18 @@ import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
+import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
+import delfi.com.vn.autotransferfile.common.api.request.UserRequest;
+import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
+import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
+import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
+import delfi.com.vn.autotransferfile.service.AutoApplication;
+import delfi.com.vn.autotransferfile.service.uploadservice.AutoServiceView;
 import delfi.com.vn.autotransferfile.ui.user.UserPresenter;
 import delfi.com.vn.autotransferfile.ui.user.UserView;
 import dk.delfi.core.Dependencies;
@@ -38,32 +45,25 @@ import rx.schedulers.Schedulers;
  * Created by PC on 8/30/2017.
  */
 
-public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements Dependencies.DependenciesListener {
+public class AutoUploadPresenter extends Presenter<AutoUploadRemote> {
 
     private List<CFolder> listFolder ;
     private Activity activity ;
+    private CUser cUser ;
     private Storage storage;
-    private ServerAPI serverAPI ;
     private String author = null ;
-
-
-
+    private CFileDocument fileDocument ;
+    private List<CFileDocument>fileDocumentList;
     private RealmController realmController ;
     public static final String TAG = AutoUploadPresenter.class.getSimpleName();
 
     public AutoUploadPresenter(Activity activity){
         this.activity = activity;
         listFolder = new ArrayList<>();
-        Dependencies dependencies = Dependencies.getsInstance(activity.getApplicationContext(), BuildConfig.BASE_URL_API);
-        dependencies.dependenciesListener(this);
-        dependencies.init();
-        serverAPI = (ServerAPI) Dependencies.serverAPI;
+        fileDocumentList = new ArrayList<>();
         realmController = RealmController.with();
-        CUser cUser = (CUser) realmController.getFirstItem(CUser.class);
+        cUser = (CUser) realmController.getFirstItem(CUser.class);
         listFolder = realmController.getALLObject(CFolder.class);
-        if (cUser!=null){
-            author = cUser.apiKey;
-        }
         if (listFolder!=null){
             setListFolder(listFolder);
         }
@@ -73,6 +73,49 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
     public void onShowData(){
         AutoUploadView view = view();
         view.onShowList(listFolder);
+    }
+
+    public void onLogout(CUser userRequest){
+        AutoUploadRemote view = view();
+        if (view==null){
+            return;
+        }
+        if (NetworkUtil.pingIpAddress(view.getContext())){
+            view.onShowError(view.getContext().getString(R.string.tvCheckNetwork));
+            return;
+        }
+
+        subscriptions.add(BaseApplication.serverAPI.logOut(userRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(() -> {
+                    view.onShowLoading();
+                })
+                .subscribe(onResponse -> {
+                    Log.d(TAG,"Logout : " + new Gson().toJson(onResponse));
+                    realmController.clearAll(CUser.class);
+                    realmController.clearAll(CFolder.class);
+                    view.onLogoutSuccessfully();
+                    view.onHideLoading();
+                }, throwable -> {
+                    view.onHideLoading();
+                    if (throwable instanceof HttpException) {
+                        ResponseBody body = ((HttpException) throwable).response().errorBody();
+                        try {
+                            JSONObject object = new JSONObject(body.string());
+                            view.onShowError(object.getString("error_message"));
+                        } catch (JSONException e) {
+                            view.onShowError(throwable.getMessage());
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            view.onShowError(throwable.getMessage());
+                            e.printStackTrace();
+                        }
+                    }else {
+                        Log.d(TAG,"action 2");
+                        view.onShowError(throwable.getMessage());
+                    }
+                }));
     }
 
 
@@ -85,7 +128,7 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
             view.onShowError(view.getContext().getString(R.string.tvCheckNetwork));
             return;
         }
-        subscriptions.add(serverAPI.getListFolder()
+        subscriptions.add(BaseApplication.serverAPI.getListFolder()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -119,14 +162,99 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
                 }));
     }
 
-    @Override
-    public Class onObject() {
-        return ServerAPI.class;
+
+    public boolean isCheckingSynData(){
+        CFileDocument cFileDocument = (CFileDocument) realmController.getLatestObject(CFileDocument.class,Constant.TAG_FILE_DOCUMENT_ID);
+        if (cFileDocument!=null){
+            setFileDocument(cFileDocument);
+            return true;
+        }
+        else{
+            setFileDocument(null);
+            return false;
+        }
     }
 
-    @Override
-    public String onAuthorToken() {
-        return this.author;
+    public void getAllFile(){
+        AutoUploadView view = view();
+        if (view == null) {
+            return;
+        }
+        if (NetworkUtil.pingIpAddress(view.getContext())) {
+            return;
+        }
+        subscriptions.add(BaseApplication.serverAPI.getALLFile()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(() -> {
+                    fileDocumentList.clear();
+                    Log.d(TAG,"action 0 : " + new Gson().toJson(fileDocumentList) );
+                })
+                .subscribe(onResponse -> {
+                    Log.d(TAG,"list from internet : "+ new Gson().toJson(onResponse.files));
+                    fileDocumentList = onResponse.files;
+                    Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
+                    if (fileDocumentList.size()>0){
+                        view.onDownLoadNow();
+                    }
+                }, throwable -> {
+                    if (throwable instanceof HttpException) {
+                        ResponseBody body = ((HttpException) throwable).response().errorBody();
+                        try {
+                            JSONObject object = new JSONObject(body.string());
+                            Log.d(TAG,new Gson().toJson(object));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }else {
+                        Log.d(TAG,view.getContext().getString(R.string.tv_issue));
+                    }
+                }));
+    }
+
+    public void getLatestFile(FileDocumentRequest request){
+        AutoUploadView view = view();
+        if (view == null) {
+            return;
+        }
+        if (NetworkUtil.pingIpAddress(view.getContext())) {
+            return;
+        }
+
+        subscriptions.add(BaseApplication.serverAPI.getLatestFile(request)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(() -> {
+                    Log.d(TAG,"file document : " + request.file_document_id);
+                    fileDocumentList.clear();
+                    Log.d(TAG,"action 0 filter : " + new Gson().toJson(fileDocumentList));
+                })
+                .subscribe(onResponse -> {
+                    Log.d(TAG,"list from internet filter : "+ new Gson().toJson(onResponse.files));
+                    if (onResponse.files!=null){
+                        fileDocumentList = onResponse.files;
+                        Log.d(TAG,"You need to add more : "+ new Gson().toJson(fileDocumentList));
+                        if (onResponse.files.size()>0){
+                            view.onDownLoadNow();
+                        }
+                    }
+                }, throwable -> {
+                    if (throwable instanceof HttpException) {
+                        ResponseBody body = ((HttpException) throwable).response().errorBody();
+                        try {
+                            JSONObject object = new JSONObject(body.string());
+                            Log.d(TAG,new Gson().toJson(object));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }else {
+                        Log.d(TAG,view.getContext().getString(R.string.tv_issue));
+                    }
+                }));
     }
 
     public Storage getStorage() {
@@ -152,5 +280,30 @@ public class AutoUploadPresenter extends Presenter<AutoUploadRemote> implements 
     public void setRealmController(RealmController realmController) {
         this.realmController = realmController;
     }
+
+    public CFileDocument getFileDocument() {
+        return fileDocument;
+    }
+
+    public void setFileDocument(CFileDocument fileDocument) {
+        this.fileDocument = fileDocument;
+    }
+
+    public List<CFileDocument> getFileDocumentList() {
+        return fileDocumentList;
+    }
+
+    public void setFileDocumentList(List<CFileDocument> fileDocumentList) {
+        this.fileDocumentList = fileDocumentList;
+    }
+
+    public CUser getcUser() {
+        return cUser;
+    }
+
+    public void setcUser(CUser cUser) {
+        this.cUser = cUser;
+    }
+
 
 }

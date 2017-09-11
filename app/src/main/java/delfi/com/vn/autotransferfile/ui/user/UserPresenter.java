@@ -19,10 +19,12 @@ import delfi.com.vn.autotransferfile.common.api.ServerAPI;
 import delfi.com.vn.autotransferfile.common.api.request.GroupRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
+import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.common.utils.Navigator;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
+import delfi.com.vn.autotransferfile.service.AutoApplication;
 import dk.delfi.core.Dependencies;
 import dk.delfi.core.common.controller.RealmController;
 import dk.delfi.core.common.presenter.Presenter;
@@ -35,10 +37,9 @@ import rx.schedulers.Schedulers;
  * Created by PC on 9/1/2017.
  */
 
-public class UserPresenter extends Presenter<UserView> implements Dependencies.DependenciesListener{
+public class UserPresenter extends Presenter<UserView>{
 
     private Activity activity;
-    private ServerAPI serverAPI ;
     public static final String TAG= UserPresenter.class.getSimpleName();
     private String author = null ;
     private CUser cUser;
@@ -47,10 +48,6 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
 
     public UserPresenter(Activity activity){
         this.activity = activity;
-        Dependencies dependencies = Dependencies.getsInstance(activity.getApplicationContext(), BuildConfig.BASE_URL_API);
-        dependencies.dependenciesListener(this);
-        dependencies.init();
-        serverAPI = (ServerAPI) Dependencies.serverAPI;
         realmController = RealmController.with();
         storage = new Storage(activity);
     }
@@ -70,7 +67,7 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
             return;
         }
         Log.d(TAG,new Gson().toJson(groupRequest));
-        subscriptions.add(serverAPI.login(groupRequest)
+        subscriptions.add(BaseApplication.serverAPI.login(groupRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -78,17 +75,17 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     view.onShowLoading();
                 })
                 .subscribe(onResponse -> {
-                    cUser = new CUser(onResponse.access_token,onResponse.device_id);
-                    Log.d(TAG,"Login" + new Gson().toJson(cUser));
-                    this.author = cUser.apiKey;
-                    getListFolder();
-
+                    if (onResponse.user!=null){
+                        cUser = onResponse.user;
+                        Log.d(TAG,"Login" + new Gson().toJson(cUser));
+                        BaseApplication.onSetAuthor(cUser.access_token);
+                        getListFolder();
+                    }
                     view.onHideLoading();
                 }, throwable -> {
                     view.onHideLoading();
                     if (throwable instanceof HttpException) {
                         ResponseBody body = ((HttpException) throwable).response().errorBody();
-
                         try {
                             Log.d(TAG,body.string());
                             JSONObject object = new JSONObject(body.string());
@@ -116,7 +113,7 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
             view.onShowError(view.getContext().getString(R.string.tvCheckNetwork));
             return;
         }
-        subscriptions.add(serverAPI.getListFolder()
+        subscriptions.add(BaseApplication.serverAPI.getListFolder()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -141,14 +138,14 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                     }
                     Log.d(TAG,"show all folder : " + new Gson().toJson(onResponse));
                     view.onHideLoading();
-
                 }, throwable -> {
                     view.onHideLoading();
                     if (throwable instanceof HttpException) {
                         ResponseBody body = ((HttpException) throwable).response().errorBody();
                         try {
                             JSONObject object = new JSONObject(body.string());
-                            view.onShowError(object.getString("error_message"));
+                            Log.d(TAG,"Show error : "+object.toString());
+                            view.onShowError(object.toString());
                         } catch (JSONException e) {
                             view.onShowError(throwable.getMessage());
                             e.printStackTrace();
@@ -172,7 +169,7 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
             view.onShowError(view.getContext().getString(R.string.tvCheckNetwork));
             return;
         }
-        subscriptions.add(serverAPI.signUp(userRequest)
+        subscriptions.add(BaseApplication.serverAPI.signUp(userRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -201,17 +198,6 @@ public class UserPresenter extends Presenter<UserView> implements Dependencies.D
                         view.onShowError(throwable.getMessage());
                     }
                 }));
-    }
-
-
-    @Override
-    public String onAuthorToken() {
-        return this.author;
-    }
-
-    @Override
-    public Class onObject() {
-        return ServerAPI.class;
     }
 
 }

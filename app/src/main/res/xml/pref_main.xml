@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="General">
+        <EditTextPreference
+            android:defaultValue="@string/pre_ip_server"
+            android:key="@string/pre_ip"
+            android:summary="@string/pre_ip_server"
+            android:title="@string/pre_set_up_ip" />
+    </PreferenceCategory>
+</PreferenceScreen>

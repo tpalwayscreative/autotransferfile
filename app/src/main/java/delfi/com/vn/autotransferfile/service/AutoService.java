@@ -8,7 +8,6 @@ import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
 import com.google.gson.Gson;
-
 import net.gotev.uploadservice.BuildConfig;
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.ServerResponse;
@@ -19,7 +18,6 @@ import net.gotev.uploadservice.UploadServiceBroadcastReceiver;
 import net.gotev.uploadservice.UploadServiceSingleBroadcastReceiver;
 import net.gotev.uploadservice.UploadStatusDelegate;
 import net.gotev.uploadservice.okhttp.OkHttpStack;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,9 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
+import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.common.utils.FileUtil;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
@@ -130,7 +128,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 presenter.getListObserver().get(i).setListener(this,false);
             }
         }
-
     }
 
     @Override
@@ -162,7 +159,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 FileUtil.mDeleteFile(getContext(),Constant.LIST_FILE_OFFICE);
                 FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(listOffice));
                 presenter.onShowDataOffice(listOffice);
-
             }
         }
     }
@@ -201,8 +197,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
         try {
             Log.d(TAG,"file upload : "+ filePath);
             Log.d(TAG,"Folder : " + presenter.getFolder_name() + " Device_id : "+ presenter.getDevice_id());
-
-            new MultipartUploadRequest(getApplicationContext(), Constant.File_UPLOAD_AUTO)
+            new MultipartUploadRequest(getApplicationContext(),BaseApplication.BASE_IP+Constant.File_UPLOAD_AUTO)
                     // starting from 3.1+, you can also use content:// URI string instead of absolute file
                     .addFileToUpload(filePath,Constant.TAG_FILE_UPLOAD)
                     .addParameter(Constant.TAG_FOLDER_NAME,presenter.getFolder_name())
@@ -239,24 +234,24 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                 presenter.setCountUploading(count);
                 if (count==listOffice.size()){
                     Log.d(TAG,"Uploading finished");
-                    if (presenter.isCheckLoading()){
-                        FileDocumentRequest fileDocumentRequest = new FileDocumentRequest(presenter.getFileDocument().file_document_id);
-                        presenter.getLatestFile(fileDocumentRequest);
-                    }else{
-                        presenter.getAllFile();
-                    }
+//                    if (presenter.isCheckingSynData()){
+//                        FileDocumentRequest fileDocumentRequest = new FileDocumentRequest(presenter.getFileDocument().file_document_id);
+//                        presenter.getLatestFile(fileDocumentRequest);
+//                    }else{
+//                        presenter.getAllFile();
+//                    }
                     FileUtil.mDeleteFile(getApplicationContext(),Constant.LIST_FILE_OFFICE);
                     FileUtil.mCreateAndSaveFile(getApplicationContext(),Constant.LIST_FILE_OFFICE,new Gson().toJson(new ArrayList<>()));
                     listOffice = new ArrayList<>();
                 }
             }
             else{
-                if (presenter.isCheckLoading()){
-                    FileDocumentRequest fileDocumentRequest = new FileDocumentRequest(presenter.getFileDocument().file_document_id);
-                    presenter.getLatestFile(fileDocumentRequest);
-                }else{
-                    presenter.getAllFile();
-                }
+//                if (presenter.isCheckingSynData()){
+//                    FileDocumentRequest fileDocumentRequest = new FileDocumentRequest(presenter.getFileDocument().file_document_id);
+//                    presenter.getLatestFile(fileDocumentRequest);
+//                }else{
+//                    presenter.getAllFile();
+//                }
             }
         }
 
@@ -265,8 +260,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             // your implementation
         }
     };
-
-
 
 
     @Override
@@ -293,9 +286,7 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                         Log.d(TAG,"File is not existing");
                     }
                 }
-
                 Log.d(TAG,"Internet changed");
-
             }
             catch (NullPointerException e){
                 e.printStackTrace();
@@ -311,7 +302,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
                     }
                 });
     }
-
 
     @Override
     public void onDownLoadCompleted(int count) {
@@ -330,7 +320,6 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             }
         });
         if (count == presenter.getFileDocumentList().size()-1){
-
             Log.d(TAG,"onDownload Finish : " + presenter.getFileDocumentList().size());
             realm.close();
         }
@@ -338,6 +327,11 @@ public class AutoService extends Service implements ConnectivityReceiver.Connect
             Log.d(TAG,"onDownload Completed");
         }
        // presenter.getRealmController().mInsertObject(presenter.getFileDocumentList().get(count),1);
+    }
+
+    @Override
+    public void onProgressingDownloading(int percent) {
+
     }
 
     @Override

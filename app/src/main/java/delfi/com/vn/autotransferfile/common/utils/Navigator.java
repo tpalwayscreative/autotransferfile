@@ -11,6 +11,8 @@ import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.ui.autodetail.AutoDetailActivity;
 import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadActivity;
 import delfi.com.vn.autotransferfile.ui.home.HomeActivity;
+import delfi.com.vn.autotransferfile.ui.sdcardmanager.SDCardManagerActivity;
+import delfi.com.vn.autotransferfile.ui.setting.SettingsActivity;
 import delfi.com.vn.autotransferfile.ui.user.UserActivity;
 
 
@@ -31,6 +33,17 @@ public class Navigator {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
+
+    public static void moveToSettings(Context context){
+        Intent intent = new Intent(context, SettingsActivity.class);
+        context.startActivity(intent);
+    }
+
+    public static void moveToCreatingFolder(Context context){
+        Intent intent = new Intent(context, SDCardManagerActivity.class);
+        context.startActivity(intent);
+    }
+
 
 
     public static void moveToAutoDetail(Context context, CFolder auto){

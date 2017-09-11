@@ -1,4 +1,5 @@
 package delfi.com.vn.autotransferfile.common.api.response;
+import delfi.com.vn.autotransferfile.model.CUser;
 import dk.delfi.core.common.api.response.BaseResponse;
 
 /**
@@ -7,11 +8,9 @@ import dk.delfi.core.common.api.response.BaseResponse;
 
 public class GroupResponse extends BaseResponse {
 
-    public String access_token ;
-    public String device_id ;
-    public GroupResponse(String access_token,String device_id){
-        this.access_token = access_token;
-        this.device_id = device_id;
+    public CUser user ;
+    public GroupResponse(CUser user){
+       this.user = user;
     }
 
 }

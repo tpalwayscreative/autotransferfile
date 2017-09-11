@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
-
     <delfi.com.vn.autotransferfile.common.dialog.MaterialMultiSelectListPreference
         android:entries="@array/preference_values"
         android:entryValues="@array/preference_values"
@@ -9,6 +7,4 @@
         android:persistent="true"
         android:summary="@string/multilist_pref_desc"
         android:title="@string/multilist_pref_title" />
-
-
 </PreferenceScreen>

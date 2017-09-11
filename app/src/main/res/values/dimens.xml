@@ -4,9 +4,8 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="standard_field_width">200dp</dimen>
-
-
-
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="bottom_sheet_dialog_width">0dp</dimen>
     <dimen name="_1sdp">1.0dp</dimen>
     <dimen name="_2sdp">2.0dp</dimen>
     <dimen name="_3sdp">3.0dp</dimen>

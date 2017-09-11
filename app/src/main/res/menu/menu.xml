@@ -17,5 +17,15 @@
         android:title="Syn Data from server"
         app:showAsAction="withText"
         />
+    <item
+        android:id="@+id/action_created_folder"
+        android:title="Create Folder"
+        app:showAsAction="withText"
+        />
+    <item
+        android:id="@+id/action_settings"
+        android:title="Settings"
+        app:showAsAction="withText"
+        />
 
 </menu>

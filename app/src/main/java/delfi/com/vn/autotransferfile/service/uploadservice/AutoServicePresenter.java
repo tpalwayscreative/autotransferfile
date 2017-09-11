@@ -18,11 +18,13 @@ import delfi.com.vn.autotransferfile.Constant;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.common.api.ServerAPI;
 import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
+import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.common.utils.NetworkUtil;
 import delfi.com.vn.autotransferfile.model.CAutoFileOffice;
 import delfi.com.vn.autotransferfile.model.CFileDocument;
 import delfi.com.vn.autotransferfile.model.CFolder;
 import delfi.com.vn.autotransferfile.model.CUser;
+import delfi.com.vn.autotransferfile.service.AutoApplication;
 import delfi.com.vn.autotransferfile.service.AutoService;
 import delfi.com.vn.autotransferfile.ui.autodetail.AutoDetailPresenter;
 import delfi.com.vn.autotransferfile.ui.autoupload.AutoUploadView;
@@ -39,10 +41,9 @@ import rx.schedulers.Schedulers;
  * Created by PC on 9/6/2017.
  */
 
-public class AutoServicePresenter extends Presenter<AutoServiceView> implements Dependencies.DependenciesListener{
+public class AutoServicePresenter extends Presenter<AutoServiceView>{
 
     private Context context ;
-    private ServerAPI serverAPI ;
     private List<CFileDocument>fileDocumentList;
     private List<CFolder> listFolder ;
     private CFileDocument fileDocument ;
@@ -52,6 +53,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
     private String author = null ;
     private Storage storage ;
     private boolean isUploading = false;
+    private boolean isDownloading = false;
     private int countUploading = 0 ;
     private String file_name ;
     private String path_file_name ;
@@ -60,17 +62,13 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     public AutoServicePresenter(Context context){
         this.context = context;
-        Dependencies dependencies = Dependencies.getsInstance(context.getApplicationContext(), BuildConfig.BASE_URL_API);
-        dependencies.dependenciesListener(this);
-        dependencies.init();
         fileDocumentList = new ArrayList<>();
         listFolder = new ArrayList<>();
         listObserver = new ArrayList<>();
-        serverAPI = (ServerAPI) Dependencies.serverAPI;
         realmController = RealmController.with();
         cUser = (CUser) realmController.getFirstItem(CUser.class);
         if (cUser!=null){
-            this.author = cUser.apiKey;
+            this.author = cUser.access_token;
         }
         listFolder = realmController.getALLObject(CFolder.class);
         if (listFolder!=null){
@@ -81,8 +79,8 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         storage = new Storage(context);
     }
 
-    public boolean isCheckLoading(){
-        CFileDocument cFileDocument = (CFileDocument) realmController.getLatestObject(CFileDocument.class,"file_document_id");
+    public boolean isCheckingSynData(){
+        CFileDocument cFileDocument = (CFileDocument) realmController.getLatestObject(CFileDocument.class,Constant.TAG_FILE_DOCUMENT_ID);
         if (cFileDocument!=null){
             setFileDocument(cFileDocument);
             return true;
@@ -101,7 +99,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         if (NetworkUtil.pingIpAddress(view.getContext())) {
             return;
         }
-        subscriptions.add(serverAPI.getALLFile()
+        subscriptions.add(BaseApplication.serverAPI.getALLFile()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -132,6 +130,8 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                 }));
     }
 
+
+
     public void getLatestFile(FileDocumentRequest request){
         AutoServiceView view = view();
         if (view == null) {
@@ -141,7 +141,7 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
             return;
         }
 
-        subscriptions.add(serverAPI.getLatestFile(request)
+        subscriptions.add(BaseApplication.serverAPI.getLatestFile(request)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -175,7 +175,6 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
                 }));
     }
 
-
     public List<CFileDocument> onCompare(List<CFileDocument>current, List<CFileDocument>previous){
         List<CFileDocument> list = new ArrayList<>();
         for (CFileDocument index : current) {
@@ -192,22 +191,9 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
         return  list;
     }
 
-    @Override
-    public String onAuthorToken() {
-        return this.author;
-    }
-
-    @Override
-    public Class onObject() {
-        return ServerAPI.class;
-    }
-
     public Context getContext() {
         return context;
     }
-
-
-
 
     public void onShowDataHashMap(Context context,HashMap hashMap){
         AutoServiceView view = view();
@@ -322,6 +308,14 @@ public class AutoServicePresenter extends Presenter<AutoServiceView> implements 
 
     public void setFileDocument(CFileDocument fileDocument) {
         this.fileDocument = fileDocument;
+    }
+
+    public boolean isDownloading() {
+        return isDownloading;
+    }
+
+    public void setDownloading(boolean downloading) {
+        isDownloading = downloading;
     }
 
 

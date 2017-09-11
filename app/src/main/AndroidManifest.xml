@@ -107,8 +107,29 @@
             android:name=".ui.user.UserActivity"
             android:label="@string/tv_Login_Screen"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.setting.SettingsActivity" />
+        <activity android:name=".ui.setting.SettingsActivity"
+            android:screenOrientation="portrait"
+            />
         <activity android:name=".ui.autodetail.AutoDetailActivity"></activity>
+
+        <activity
+            android:name=".ui.sdcardmanager.ViewTextActivity"
+            android:screenOrientation="portrait"/>
+
+        <provider
+            android:name=".ui.sdcardmanager.GenericFileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+
+        <activity android:name=".ui.sdcardmanager.SDCardManagerActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
     </application>
 
 </manifest>

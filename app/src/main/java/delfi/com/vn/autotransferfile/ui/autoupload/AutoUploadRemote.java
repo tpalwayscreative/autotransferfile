@@ -15,6 +15,7 @@ import butterknife.ButterKnife;
 import delfi.com.vn.autotransferfile.R;
 import delfi.com.vn.autotransferfile.model.CAuToUpload;
 import delfi.com.vn.autotransferfile.model.CFolder;
+import delfi.com.vn.autotransferfile.service.downloadservice.DownloadService;
 import dk.delfi.core.common.activity.BaseActivity;
 import dk.delfi.core.ui.recycleview.DPRecyclerView;
 import dk.delfi.core.ui.recycleview.RecyclerViewAdapter;
@@ -29,6 +30,7 @@ public abstract class AutoUploadRemote  extends BaseActivity implements DPRecycl
     protected RecyclerViewAdapter adapter ;
     protected AutoUploadPresenter presenter ;
     protected ViewHolder viewHolder ;
+    protected DownloadService downloadService ;
     @BindView(R.id.rcAuto)
     protected RecyclerView recyclerView;
 

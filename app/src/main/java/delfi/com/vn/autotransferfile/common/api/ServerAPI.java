@@ -3,12 +3,14 @@ import java.util.HashMap;
 
 import delfi.com.vn.autotransferfile.common.api.request.FileDocumentRequest;
 import delfi.com.vn.autotransferfile.common.api.request.GroupRequest;
+import delfi.com.vn.autotransferfile.common.api.request.UserRequest;
 import delfi.com.vn.autotransferfile.common.api.request.UserRequestOption;
 import delfi.com.vn.autotransferfile.common.api.response.FileDocumentResponse;
 import delfi.com.vn.autotransferfile.common.api.response.FolderResponse;
 import delfi.com.vn.autotransferfile.common.api.response.GroupResponse;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponse;
 import delfi.com.vn.autotransferfile.common.api.response.UserResponseOption;
+import delfi.com.vn.autotransferfile.model.CUser;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 import retrofit2.http.Body;
@@ -27,8 +29,6 @@ import rx.Observable;
 
 public interface ServerAPI {
 
-
-
     String USER_REGISTER = "/task_manager/v1/register";
     String USER_LOGIN = "/task_manager/v1/login";
     String TASKS_ADD = "/task_manager/v1/tasks";
@@ -43,7 +43,11 @@ public interface ServerAPI {
     String AUTO_GET_ALL_FILE = "/api/file/GetAllCurentFiles/";
     String AUTO_GET_CURRENT_FILE = "/api/file/GetCurentFiles/";
     String AUTO_GET_LATEST_FILE = "/api/file/GetNewCurentFiles/";
+    String AUTO_LOGOUT = "api/device/Logout";
 
+
+    @POST(AUTO_LOGOUT)
+    Observable<UserResponse> logOut(@Body CUser request);
 
     @FormUrlEncoded
     @POST(USER_REGISTER)

@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import delfi.com.vn.autotransferfile.BuildConfig;
 import delfi.com.vn.autotransferfile.R;
+import delfi.com.vn.autotransferfile.common.application.BaseApplication;
 import delfi.com.vn.autotransferfile.service.AutoApplication;
 import delfi.com.vn.autotransferfile.service.AutoService;
 import delfi.com.vn.autotransferfile.service.broadcastreceiver.ConnectivityReceiver;
@@ -67,6 +68,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
     @Override
     public void onAttachmentDownloadUpdate(int percent,int idResponse) {
         Log.d(TAG,"Downloading : "+ percent);
+        this.listener.onProgressingDownloading(percent);
         notificationBuilder.setContentInfo(percent+ "%")
                 .setProgress(100, percent, false);
         notificationManager.notify(idResponse, notificationBuilder.build());
@@ -87,7 +89,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 
     public void downloadZipFileRx(int idResponse,String fileName,String folderName,String path_save_to) {
         // https://github.com/yourusername/awesomegames/archive/master.zip
-        RetrofitInterface downloadService = createService(RetrofitInterface.class, BuildConfig.BASE_URL_API,idResponse);
+        RetrofitInterface downloadService = createService(RetrofitInterface.class,BaseApplication.BASE_IP,idResponse);
         Log.d(TAG,"show path : "+ "/api/file/GetImage?file_name="+fileName+"&folder_name="+folderName);
         downloadService.downloadFileByUrlRx("/api/file/GetImage?file_name="+fileName+"&folder_name="+folderName)
                 .flatMap(processResponse(idResponse,fileName,path_save_to))
@@ -185,6 +187,7 @@ public class DownloadService  implements ProgressResponseBody.ProgressResponseBo
 
     public interface DownLoadServiceListener {
         void onDownLoadCompleted(int count);
+        void onProgressingDownloading(int percent);
     }
 
 

@@ -11,29 +11,29 @@ public class CUser extends RealmObject implements Serializable{
 
     @PrimaryKey
     public String device_id;
-    public String apiKey;
+    public String group_id;
+    public String group_name;
+    public String access_token;
     public String name;
     public String email;
     public String created_date;
     public String updated_date;
 
-
     public CUser(){
 
     }
 
-    public CUser(String apiKey,String device_id){
-        this.apiKey = apiKey ;
+    public CUser(String access_token,String device_id){
+        this.access_token = access_token ;
         this.device_id = device_id ;
     }
 
-    public CUser(String name, String email, String apiKey, String created_date,String updated_date){
+    public CUser(String name, String email, String access_token, String created_date,String updated_date){
         this.name = name ;
         this.email = email ;
-        this.apiKey = apiKey ;
+        this.access_token = access_token ;
         this.created_date = created_date;
         this.updated_date = updated_date;
     }
-
 
 }
