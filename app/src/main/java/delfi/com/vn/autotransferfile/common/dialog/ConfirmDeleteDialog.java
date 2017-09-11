@@ -48,7 +48,7 @@ public class ConfirmDeleteDialog extends DialogFragment {
         builder.setNegativeButton(R.string.label_cancel, null);
         return builder.create();
     }
-    
+
     public interface ConfirmListener {
         void onConfirmDelete(String path);
     }
