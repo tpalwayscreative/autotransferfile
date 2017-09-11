@@ -25,7 +25,6 @@ public class ConfirmDeleteDialog extends DialogFragment {
         return fragment;
     }
 
-    
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -50,6 +49,7 @@ public class ConfirmDeleteDialog extends DialogFragment {
         return builder.create();
     }
 
+    
     public interface ConfirmListener {
         void onConfirmDelete(String path);
     }
