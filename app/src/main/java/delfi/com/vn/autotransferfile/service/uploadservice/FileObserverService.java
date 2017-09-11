@@ -21,7 +21,6 @@ public class FileObserverService extends FileObserver {
        this.folder_name = folder_name ;
 
    }
-   
 
    public void setListener(FileObserverServiceListener fileObserverServiceListener,boolean isStart){
        if (isStart){
